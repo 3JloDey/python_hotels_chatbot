@@ -1,3 +1,4 @@
+# type: ignore
 import asyncio
 import logging
 import os
@@ -35,7 +36,7 @@ async def main() -> None:
     token: Optional[str] = os.getenv("BOT_TOKEN")
 
     storage = MemoryStorage()
-    bot = Bot(token=token, parse_mode="HTML")  # type: ignore
+    bot = Bot(token=token, parse_mode="HTML")
     dp = Dispatcher(bot=bot, storage=storage)
 
     register_all_handlers_and_dialogs(dp)

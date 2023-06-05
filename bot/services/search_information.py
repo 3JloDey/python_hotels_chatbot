@@ -30,7 +30,3 @@ class Search:
             if item["type"] != "HOTEL":
                 data.append((item["gaiaId"], item["regionNames"]["displayName"]))
         return data
-
-
-# search = Search()
-# search.locations_id("Berlin")

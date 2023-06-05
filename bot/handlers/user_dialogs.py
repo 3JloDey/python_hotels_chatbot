@@ -1,3 +1,4 @@
+# type: ignore
 from datetime import date
 from typing import Any
 
@@ -7,7 +8,6 @@ from aiogram_dialog.widgets.common import Whenable
 from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import (
     Button,
-    Calendar,
     Column,
     ManagedCalendarAdapter,
     Row,
@@ -16,9 +16,10 @@ from aiogram_dialog.widgets.kbd import (
 )
 from aiogram_dialog.widgets.text import Const, Format
 
-from bot.services.search import Search
+from bot.services.search_information import Search
 from bot.states.user_states import SearchHotels
 from bot.utils import (
+    MyCalendar,
     check_in_date_validator,
     check_out_date_validator,
     delete_message,
@@ -34,7 +35,7 @@ async def get_city_from_user(
     await delete_message(manager, msg)
 
     search = Search()
-    locations: list[tuple] = search.locations_id(msg.text)  # type: ignore
+    locations: list[tuple] = search.locations_id(msg.text)
 
     if locations:
         manager.dialog_data["locations"] = locations
@@ -158,7 +159,7 @@ def main_dialogs() -> Dialog:
         # region City request
         Window(
             Const("Enter city when you want to search hotels"),
-            MessageInput(get_city_from_user),  # type: ignore
+            MessageInput(get_city_from_user),
             state=SearchHotels.city_request,
         ),
         # endregion City request
@@ -181,9 +182,9 @@ def main_dialogs() -> Dialog:
         # region Check in
         Window(
             Const("Select check in date"),
-            Calendar(id="check_in", on_click=get_check_in_date),  # type: ignore
+            MyCalendar(id="check_in", on_click=get_check_in_date),
             Button(
-                Const("Back"),
+                Const("⬅️ Back"),
                 id="back",
                 on_click=go_back,
                 when=is_settings_not_complite,
@@ -194,9 +195,9 @@ def main_dialogs() -> Dialog:
         # region Check out
         Window(
             Const("Select check out date"),
-            Calendar(id="check_out", on_click=get_check_out_date),  # type: ignore
+            MyCalendar(id="check_out", on_click=get_check_out_date),
             Button(
-                Const("Back"),
+                Const("⬅️ Back"),
                 id="back",
                 on_click=go_back,
                 when=is_settings_not_complite,
@@ -217,7 +218,7 @@ def main_dialogs() -> Dialog:
                 ),
             ),
             Button(
-                Const("Back"),
+                Const("⬅️ Back"),
                 id="back",
                 on_click=go_back,
                 when=is_settings_not_complite,
@@ -234,7 +235,7 @@ def main_dialogs() -> Dialog:
                 Button(Const("+"), id="inc", on_click=change_photo_counter),
             ),
             Row(
-                Button(Const("Back"), id="back", on_click=go_back),
+                Button(Const("⬅️ Back"), id="back", on_click=go_back),
                 Button(Const("Ok"), id="ok", on_click=confirm_photo),
             ),
             state=SearchHotels.count_photo,
@@ -290,8 +291,6 @@ def main_dialogs() -> Dialog:
             state=SearchHotels.settings,
         ),
         # endregion Settings
-        # region *Next Window*
-        # endregion *Next Window*
     ]
 
-    return Dialog(*list_dialogs)  # type: ignore
+    return Dialog(*list_dialogs)
