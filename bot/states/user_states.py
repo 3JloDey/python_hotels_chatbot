@@ -11,3 +11,4 @@ class SearchHotels(StatesGroup):
     count_photo = State()
     main_menu = State()
     settings = State()
+    hotels = State()

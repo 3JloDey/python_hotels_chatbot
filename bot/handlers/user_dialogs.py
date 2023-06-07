@@ -26,6 +26,8 @@ from bot.utils import (
     error_window,
 )
 
+search = Search()
+
 
 # region City
 async def get_city_from_user(
@@ -34,7 +36,6 @@ async def get_city_from_user(
     manager.show_mode = ShowMode.EDIT
     await delete_message(manager, msg)
 
-    search = Search()
     locations: list[tuple] = search.locations_id(msg.text)
 
     if locations:
@@ -52,6 +53,7 @@ async def confirm_city(
     location = dict(manager.dialog_data["locations"]).get(item_id)
     manager.dialog_data["city"] = location
     manager.dialog_data["id"] = item_id
+
     if manager.dialog_data.get("settings_complite"):
         return await manager.switch_to(SearchHotels.main_menu)
     await manager.switch_to(SearchHotels.check_in_date)
@@ -121,6 +123,35 @@ async def confirm_photo(clb: CallbackQuery, widget, manager: DialogManager) -> N
 # endregion Photo
 
 
+# region Hotels
+async def select_hotels(clb: CallbackQuery, button: Button, manager: DialogManager) -> None:
+    list_hotels_id: list[str] = search.hotels_list_id(manager.dialog_data["id"])
+
+    manager.dialog_data["list_hotels_id"] = list_hotels_id
+    manager.dialog_data.update(search.detail_information(list_hotels_id[manager.dialog_data.get("index", 0)]))
+
+    await manager.switch_to(SearchHotels.hotels)
+
+
+async def hotel_pagination(clb: CallbackQuery, button: Button, manager: DialogManager) -> None:
+    manager.dialog_data["index"] = manager.dialog_data.get("index", 0)
+    index = manager.dialog_data["index"]
+    list_hotels_id = manager.dialog_data.get("list_hotels_id")
+
+    if clb.data == "next" and 0 <= index < len(list_hotels_id):
+        index += 1
+    elif clb.data == "prev" and 0 < index <= len(list_hotels_id):
+        index -= 1
+
+    manager.dialog_data["index"] = index
+    detail_info: dict[str, Any] = search.detail_information(list_hotels_id[index])
+    if detail_info is not None:
+        manager.dialog_data.update(detail_info)
+
+
+# endregion Hotels
+
+
 # region Misc
 async def get_data(dialog_manager: DialogManager, **kwargs) -> dict[str, Any]:
     return {
@@ -131,6 +162,9 @@ async def get_data(dialog_manager: DialogManager, **kwargs) -> dict[str, Any]:
         "check_out": dialog_manager.dialog_data.get("check_out_date"),
         "counter": dialog_manager.dialog_data.get("counter", 0),
         "settings_complite": False,
+        "hotel_name": dialog_manager.dialog_data.get("hotel_name"),
+        "address": dialog_manager.dialog_data.get("address"),
+        "rating": dialog_manager.dialog_data.get("rating")
     }
 
 
@@ -248,7 +282,7 @@ def main_dialogs() -> Dialog:
                 "City: {city}\nCheck in: {check_in}\nCheck out: {check_out}\nCount photo: {counter}"
             ),
             Row(
-                Button(Const("Lower Price"), id="lower"),
+                Button(Const("Lower Price"), id="lower", on_click=select_hotels),
                 Button(Const("Hight price"), id="hight"),
                 Button(Const("Best deal"), id="best"),
             ),
@@ -291,6 +325,21 @@ def main_dialogs() -> Dialog:
             state=SearchHotels.settings,
         ),
         # endregion Settings
+        # region Hotels
+        Window(
+            Format("Hotel: {hotel_name}\nAddress: {address}\nRating: {rating}"),
+            Row(
+                Button(Const("◀️"), id="prev", on_click=hotel_pagination),
+                Button(Const("❤️"), id="like"),
+                Button(Const("▶️"), id="next", on_click=hotel_pagination),
+            ),
+            SwitchTo(
+                Const("⬅️ Back to main menu"), id="main", state=SearchHotels.main_menu
+            ),
+            state=SearchHotels.hotels,
+            getter=get_data,
+        )
+        # endregion Hotels
     ]
 
     return Dialog(*list_dialogs)

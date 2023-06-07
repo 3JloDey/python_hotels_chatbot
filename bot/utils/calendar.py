@@ -52,7 +52,7 @@ class MyCalendar(Calendar):
 
                     week_row.append(
                         InlineKeyboardButton(
-                            text=f"[ {day} ]"
+                            text=f"{day} 🗓"
                             if date(offset.year, offset.month, day) == date.today()
                             else str(day),
                             callback_data=self._item_callback_data(raw_date),
