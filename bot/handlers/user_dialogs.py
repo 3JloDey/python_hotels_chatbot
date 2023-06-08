@@ -125,12 +125,22 @@ async def confirm_photo(clb: CallbackQuery, widget, manager: DialogManager) -> N
 
 # region Hotels
 async def select_hotels(clb: CallbackQuery, button: Button, manager: DialogManager) -> None:
-    list_hotels_id: list[str] = search.hotels_list_id(manager.dialog_data["id"])
+    check_in = list(map(int, manager.dialog_data["check_in_date"].split('-')))
+    check_out = list(map(int, manager.dialog_data["check_out_date"].split('-')))
+    city_id = manager.dialog_data["id"]
 
-    manager.dialog_data["list_hotels_id"] = list_hotels_id
-    manager.dialog_data.update(search.detail_information(list_hotels_id[manager.dialog_data.get("index", 0)]))
+    list_hotels_id: list[str] = search.hotels_list_id(
+        city_id=city_id, sort=clb.data, check_in=check_in, check_out=check_out
+            )
 
-    await manager.switch_to(SearchHotels.hotels)
+    if list_hotels_id:
+        manager.dialog_data["list_hotels_id"] = list_hotels_id
+        index = manager.dialog_data.get("index", 0)
+        manager.dialog_data.update(search.detail_information(list_hotels_id[index]))
+        await manager.switch_to(SearchHotels.hotels)
+    else:
+        text = "Hotels not found. Please select another city or try again later"
+        await clb.answer(text=text, show_alert=True)
 
 
 async def hotel_pagination(clb: CallbackQuery, button: Button, manager: DialogManager) -> None:
@@ -164,7 +174,10 @@ async def get_data(dialog_manager: DialogManager, **kwargs) -> dict[str, Any]:
         "settings_complite": False,
         "hotel_name": dialog_manager.dialog_data.get("hotel_name"),
         "address": dialog_manager.dialog_data.get("address"),
-        "rating": dialog_manager.dialog_data.get("rating")
+        "rating": dialog_manager.dialog_data.get("rating"),
+        'users_rating': dialog_manager.dialog_data.get("users_rating") or 'No user rating',
+        'around': dialog_manager.dialog_data.get('around'),
+        'about': dialog_manager.dialog_data.get('about'),
     }
 
 
@@ -262,7 +275,7 @@ def main_dialogs() -> Dialog:
         # endregion Request photos
         # region Count photo
         Window(
-            Const("Select count photo"),
+            Const("Choose the number of photos to upload"),
             Row(
                 Button(Const("-"), id="dec", on_click=change_photo_counter),
                 Button(Format("{counter}"), id="confirm"),
@@ -282,9 +295,9 @@ def main_dialogs() -> Dialog:
                 "City: {city}\nCheck in: {check_in}\nCheck out: {check_out}\nCount photo: {counter}"
             ),
             Row(
-                Button(Const("Lower Price"), id="lower", on_click=select_hotels),
-                Button(Const("Hight price"), id="hight"),
-                Button(Const("Best deal"), id="best"),
+                Button(Const("Lower Price"), id="PRICE_LOW_TO_HIGH", on_click=select_hotels),
+                Button(Const("Hight price"), id="PRICE_HIGH_TO_LOW", on_click=select_hotels),
+                Button(Const("Best deal"), id="PRICE_RELEVANT", on_click=select_hotels),
             ),
             Row(
                 Button(Const("History"), id="history"),
@@ -327,7 +340,9 @@ def main_dialogs() -> Dialog:
         # endregion Settings
         # region Hotels
         Window(
-            Format("Hotel: {hotel_name}\nAddress: {address}\nRating: {rating}"),
+            Format("Hotel: <b>{hotel_name}</b>\nAddress: <code>{address}</code>\n"),
+            Format("<u>Rating:</u> {rating} ⭐️\n<u>Users rating</u>: {users_rating} 📈\n"),
+            Format('<i>About</i>: {about}\n\n<i>Around</i>: {around}'),
             Row(
                 Button(Const("◀️"), id="prev", on_click=hotel_pagination),
                 Button(Const("❤️"), id="like"),

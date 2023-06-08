@@ -1,28 +1,23 @@
 from typing import Callable
 
 
-def formatting(func) -> Callable:
-    def wrapper(text) -> str:
-        return f"<{func.__name__}>{func(text)}</{func.__name__}>"
+class Formatting:
+    def __init__(self, func: Callable) -> None:
+        self.func = func
 
-    return wrapper
+    def __call__(self, text: str) -> str:
+        return f"<{self.func.__name__}>{self.func(text)}</{self.func.__name__}>"
 
 
-class Html:
+class Html(Formatting):
     @staticmethod
-    @formatting
-    def b(text) -> str:
-        """Жирный текст"""
+    def b(text: str) -> str:
         return text
 
     @staticmethod
-    @formatting
-    def i(text) -> str:
-        """Курсивный текст"""
+    def i(text: str) -> str:
         return text
 
     @staticmethod
-    @formatting
-    def u(text) -> str:
-        """Подчеркнутый текст"""
+    def u(text: str) -> str:
         return text
