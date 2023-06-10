@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-def locations_id(city: Optional[str]) -> List[Any]:
+def locations_id(city: Optional[str]) -> dict[str, str]:
     url = "https://hotels4.p.rapidapi.com/locations/v3/search"
 
     querystring = {

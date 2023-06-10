@@ -17,8 +17,8 @@ async def save_data(clb: CallbackQuery, _: Any, manager: DialogManager, item_id:
     manager.dialog_data["id"] = item_id
 
     if manager.dialog_data.get("settings_complite") is True:
-        return await manager.switch_to(states.Main.MENU)
-    await manager.switch_to(states.Settings.CHECK_IN)
+        return await manager.switch_to(states.Dialog.MENU)
+    await manager.switch_to(states.Dialog.CHECK_IN)
 
 
 def city_confirm() -> Window:
@@ -33,6 +33,6 @@ def city_confirm() -> Window:
                 id="s_location",
             )
         ),
-        state=states.Settings.CONFIRM_LOCATION,
+        state=states.Dialog.CONFIRM_LOCATION,
         getter=get_data,
     )

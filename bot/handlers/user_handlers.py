@@ -8,7 +8,7 @@ from bot.states import states
 
 async def command_start(msg: Message, dialog_manager: DialogManager) -> None:
     await msg.delete()
-    await dialog_manager.start(states.Settings.MAIN, mode=StartMode.RESET_STACK)
+    await dialog_manager.start(states.Dialog.MAIN, mode=StartMode.RESET_STACK)
 
 
 def register_user_handlers(dp: Dispatcher) -> None:

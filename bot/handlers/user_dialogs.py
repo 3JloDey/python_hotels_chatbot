@@ -2,13 +2,6 @@
 from datetime import date
 from typing import Any
 
-# from bot.utils import (
-#     MyCalendar,
-#     check_in_date_validator,
-#     check_out_date_validator,
-#     delete_message,
-#     error_window,
-# )
 from aiogram import F, types
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import Dialog, DialogManager, ShowMode, Window
@@ -25,45 +18,15 @@ from aiogram_dialog.widgets.kbd import (
 from aiogram_dialog.widgets.text import Const, Format
 
 from bot.services import api_requests
-
-# from bot.services.search_information import Search
+from bot.services.search_information import Search
 from bot.states import states
-
-# #  endregion City
-
-
-# region Date
-async def get_check_in_date(clb: CallbackQuery, _: ManagedCalendarAdapter, manager: DialogManager, selected_date: date) -> None:
-    selected_date_str = str(selected_date)
-    if check_in_date_validator(manager, selected_date_str) is False:
-        await error_window(clb, selected_date_str)
-    else:
-        manager.dialog_data["check_in_date"] = selected_date_str
-        if manager.dialog_data.get("settings_complite"):
-            return await manager.switch_to(states.Main.MENU)
-
-        await manager.switch_to(SearchHotels.check_out_date)
-
-
-# async def get_check_out_date(
-#     clb: CallbackQuery,
-#     widget: ManagedCalendarAdapter,
-#     manager: DialogManager,
-#     selected_date: date,
-# ) -> None:
-#     selected_date_str = str(selected_date)
-#     if check_out_date_validator(manager, selected_date_str) is False:
-#         await error_window(clb, selected_date_str)
-#     else:
-#         manager.dialog_data["check_out_date"] = selected_date_str
-#         if manager.dialog_data.get("settings_complite"):
-#             return await manager.switch_to(SearchHotels.main_menu)
-
-#         await manager.switch_to(SearchHotels.photo_request)
-
-
-# # endregion Date
-
+from bot.utils import (
+    MyCalendar,
+    check_in_date_validator,
+    check_out_date_validator,
+    delete_message,
+    error_window,
+)
 
 # # region Photo
 # async def change_photo_counter(
@@ -172,41 +135,28 @@ async def get_check_in_date(clb: CallbackQuery, _: ManagedCalendarAdapter, manag
 
 def main_dialogs() -> Dialog:
     list_dialogs = [
-            # region Check out
-            Window(
-                Const("Select check out date"),
-                MyCalendar(id="check_out", on_click=get_check_out_date),
-                Button(
-                    Const("⬅️ Back"),
-                    id="back",
-                    on_click=go_back,
-                    when=is_settings_not_complite,
+        # region Request photos
+        Window(
+            Const("Would you want to download photo?"),
+            Row(
+                SwitchTo(Const("Yes"), id="yes", state=SearchHotels.count_photo),
+                SwitchTo(
+                    Const("No"),
+                    id="no",
+                    state=SearchHotels.main_menu,
+                    on_click=confirm_photo,
                 ),
-                state=SearchHotels.check_out_date,
             ),
-            # endregion Check out
-        #     # region Request photos
-        #     Window(
-        #         Const("Would you want to download photo?"),
-        #         Row(
-        #             SwitchTo(Const("Yes"), id="yes", state=SearchHotels.count_photo),
-        #             SwitchTo(
-        #                 Const("No"),
-        #                 id="no",
-        #                 state=SearchHotels.main_menu,
-        #                 on_click=confirm_photo,
-        #             ),
-        #         ),
-        #         Button(
-        #             Const("⬅️ Back"),
-        #             id="back",
-        #             on_click=go_back,
-        #             when=is_settings_not_complite,
-        #         ),
-        #         state=SearchHotels.photo_request,
-        #     ),
-        #     # endregion Request photos
-        #     # region Count photo
+            Button(
+                Const("⬅️ Back"),
+                id="back",
+                on_click=go_back,
+                when=is_settings_not_complite,
+            ),
+            state=SearchHotels.photo_request,
+        ),
+        # endregion Request photos
+        # region Count photo
         #     Window(
         #         Const("Choose the number of photos to upload"),
         #         Row(
@@ -222,59 +172,7 @@ def main_dialogs() -> Dialog:
         #         getter=get_data,
         #     ),
         #     # endregion Count photo
-        #     # region Main menu
-        #     Window(
-        #         Format(
-        #             "City: {city}\nCheck in: {check_in}\nCheck out: {check_out}\nCount photo: {counter}"
-        #         ),
-        #         Row(
-        #             Button(
-        #                 Const("Lower Price"), id="PRICE_LOW_TO_HIGH", on_click=select_hotels
-        #             ),
-        #             Button(
-        #                 Const("Hight price"), id="PRICE_HIGH_TO_LOW", on_click=select_hotels
-        #             ),
-        #             Button(Const("Best deal"), id="PRICE_RELEVANT", on_click=select_hotels),
-        #         ),
-        #         Row(
-        #             Button(Const("History"), id="history"),
-        #             SwitchTo(Const("Setting"), id="settings", state=SearchHotels.settings),
-        #         ),
-        #         state=SearchHotels.main_menu,
-        #         getter=get_data,
-        #     ),
-        #     # endregion Main menu
-        #     # region Settings
-        #     Window(
-        #         Const("Settings menu"),
-        #         Row(
-        #             SwitchTo(
-        #                 Const("Change city"),
-        #                 id="change_city",
-        #                 state=SearchHotels.city_request,
-        #             ),
-        #             SwitchTo(
-        #                 Const("Change count of photos"),
-        #                 id="change_photo",
-        #                 state=SearchHotels.photo_request,
-        #             ),
-        #         ),
-        #         Row(
-        #             SwitchTo(
-        #                 Const("Change check in date"),
-        #                 id="change_check_in",
-        #                 state=SearchHotels.check_in_date,
-        #             ),
-        #             SwitchTo(
-        #                 Const("Change check out date"),
-        #                 id="change_check_out",
-        #                 state=SearchHotels.check_out_date,
-        #             ),
-        #         ),
-        #         Button(Const("Back"), id="back", on_click=go_back),
-        #         state=SearchHotels.settings,
-        #     ),
-        #     # endregion Settings
+
         #     # region Hotels
         #     Window(
         #         Format("Hotel: <b>{hotel_name}</b>\nAddress: <code>{address}</code>\n"),

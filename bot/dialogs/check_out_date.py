@@ -8,7 +8,7 @@ from aiogram_dialog.widgets.text import Const
 from bot.dialogs.misc import go_back, is_settings_not_complite
 from bot.states import states
 from bot.utils import CustomCalendar
-from bot.utils.date_validation import check_in_date_validator, validation_error
+from bot.utils.date_validation import check_out_date_validator, validation_error
 
 
 async def date_confirm(
@@ -18,18 +18,17 @@ async def date_confirm(
     selected_date: date,
 ) -> None:
     date = str(selected_date)
-    if check_in_date_validator(manager, date) is False:
+    if check_out_date_validator(manager, date) is False:
         await validation_error(clb, date)
     else:
-        manager.dialog_data["check_in_date"] = date
-        if manager.dialog_data.get("settings_complite"):
-            return await manager.switch_to(states.Dialog.MENU)
-        await manager.switch_to(states.Dialog.CHECK_OUT)
+        manager.dialog_data['settings_complite'] = True
+        manager.dialog_data["check_out_date"] = date
+        await manager.switch_to(states.Dialog.MENU)
 
 
-def check_in_date() -> Window:
+def check_out_date() -> Window:
     return Window(
-        Const("Select check in date"),
+        Const("Select check out date"),
         CustomCalendar(id="check_in", on_click=date_confirm),
         Button(
             Const("⬅️ Back"),
@@ -37,5 +36,5 @@ def check_in_date() -> Window:
             on_click=go_back,
             when=is_settings_not_complite,
         ),
-        state=states.Dialog.CHECK_IN,
+        state=states.Dialog.CHECK_OUT,
     )
