@@ -12,9 +12,9 @@ from bot.states import states
 
 async def get_data(dialog_manager: DialogManager, **kwargs) -> dict[str, Any]:
     return {
-        "city": dialog_manager.dialog_data.get("city"),
-        "check_in": dialog_manager.dialog_data.get("check_in_date"),
-        "check_out": dialog_manager.dialog_data.get("check_out_date"),
+        "city": dialog_manager.dialog_data["city"],
+        "check_in": dialog_manager.dialog_data["check_in_date"],
+        "check_out": dialog_manager.dialog_data["check_out_date"],
     }
 
 
@@ -23,11 +23,9 @@ async def select_hotels(
 ) -> None:
     check_in = list(map(int, manager.dialog_data["check_in_date"].split("-")))
     check_out = list(map(int, manager.dialog_data["check_out_date"].split("-")))
-    city_id = manager.dialog_data["id"]
+    id = manager.dialog_data["id"]
 
-    list_hotels_id: list[str] = hotels_list_id(
-        id=city_id, sort=clb.data, check_in=check_in, check_out=check_out
-    )
+    list_hotels_id: list[str] = hotels_list_id(id=id, sort=clb.data, check_in=check_in, check_out=check_out)
 
     if list_hotels_id:
         manager.dialog_data["list_hotels_id"] = list_hotels_id
@@ -45,16 +43,18 @@ def main_menu() -> Window:
         Format("City: {city}\nCheck in: {check_in}\nCheck out: {check_out}"),
         Row(
             Button(
-                Const("Lower Price"), id="PRICE_LOW_TO_HIGH", on_click=select_hotels
+                Const("Lower Price 💸"), id="PRICE_LOW_TO_HIGH", on_click=select_hotels
             ),
             Button(
-                Const("Hight price"), id="PRICE_HIGH_TO_LOW", on_click=select_hotels
+                Const("Hight price 💰"), id="PRICE_HIGH_TO_LOW", on_click=select_hotels
             ),
-            Button(Const("Best deal"), id="PRICE_RELEVANT", on_click=select_hotels),
+            Button(
+                Const("Best deal 🔥"), id="PRICE_RELEVANT", on_click=select_hotels
+            ),
         ),
         Row(
-            Button(Const("History"), id="history"),
-            SwitchTo(Const("Setting"), id="settings", state=states.Dialog.SETTINGS),
+            Button(Const("History 📜"), id="history"),
+            SwitchTo(Const("Settings 🛠"), id="settings", state=states.Dialog.SETTINGS),
         ),
         state=states.Dialog.MENU,
         getter=get_data,

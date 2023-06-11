@@ -21,3 +21,5 @@ class Dialog(StatesGroup):
     MENU = State()
     SETTINGS = State()
     HOTELS = State()
+    PHOTOS = State()
+

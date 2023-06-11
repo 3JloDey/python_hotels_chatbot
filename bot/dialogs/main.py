@@ -8,6 +8,8 @@ from bot.dialogs.city_confirm import city_confirm
 from bot.dialogs.city_request import city_request
 from bot.dialogs.main_menu import main_menu
 from bot.dialogs.settings import settings
+from bot.dialogs.get_hotels import get_hotels
+from bot.dialogs.get_photo import get_photo
 
 
 def register_user_dialogs(dp: Dispatcher) -> None:
@@ -19,6 +21,8 @@ def register_user_dialogs(dp: Dispatcher) -> None:
             check_out_date(),
             main_menu(),
             settings(),
+            get_hotels(),
+            get_photo()
         ]
     )
     dp.include_router(dialogs)

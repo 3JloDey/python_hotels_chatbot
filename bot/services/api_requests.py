@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-def locations_id(city: Optional[str]) -> dict[str, str]:
+def locations_id(city: Optional[str]) -> list[tuple[str, str]]:
     url = "https://hotels4.p.rapidapi.com/locations/v3/search"
 
     querystring = {
@@ -49,7 +49,7 @@ def hotels_list_id(id: str, sort: str, check_in: list, check_out: list) -> List[
             }
         ],
         "resultsStartingIndex": 0,
-        "resultsSize": 50,
+        "resultsSize": 100,
         "sort": f"{sort}",
     }
     headers = {
@@ -85,14 +85,16 @@ def detail_information(hotel_id) -> dict[str, Any]:
 
     hotel_name = response["data"]["propertyInfo"]["summary"]["name"]
     address = response["data"]["propertyInfo"]["summary"]["location"]["address"]["addressLine"]
-    users_rating = response["data"]["propertyInfo"]["reviewInfo"]["summary"]["overallScoreWithDescriptionA11y"]["value"]
     around = "\n".join(response["data"]["propertyInfo"]["summary"]["location"]["whatsAround"]["editorial"]["content"])
     about = response["data"]["propertyInfo"]["propertyContentSectionGroups"]["aboutThisProperty"]["sections"][0]["bodySubSections"][0]["elements"][0]["items"][0]["content"].get("text", "No Description")
     latitude = response["data"]["propertyInfo"]["summary"]["location"]["coordinates"]["latitude"]
     longitude = response["data"]["propertyInfo"]["summary"]["location"]["coordinates"]["longitude"]
+    users_rating = response["data"]["propertyInfo"]["reviewInfo"]["summary"]["overallScoreWithDescriptionA11y"]["value"] or "No user rating"
     photos = []
-    for photo in response["data"]["propertyInfo"]["propertyGallery"]["images"]:
-        photos.append(photo["image"]["url"])
+    for data in response["data"]["propertyInfo"]["propertyGallery"]["images"]:
+        photo = data["image"]["url"]
+        description = data['image']["description"]
+        photos.append((photo, description))
     try:
         rating = response["data"]["propertyInfo"]["summary"]["overview"]["propertyRating"]["rating"]
     except (KeyError, TypeError):
