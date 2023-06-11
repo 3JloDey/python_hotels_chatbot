@@ -42,6 +42,7 @@ async def get_data(dialog_manager: DialogManager, **kwargs) -> dict[str, Any]:
         "address": dialog_manager.dialog_data["address"],
         "rating": dialog_manager.dialog_data["rating"],
         "users_rating": dialog_manager.dialog_data["users_rating"],
+        "price": dialog_manager.dialog_data["price"],
         "about": dialog_manager.dialog_data["about"],
         "around": dialog_manager.dialog_data["around"],
     }
@@ -51,7 +52,7 @@ def get_hotels() -> Window:
     return Window(
         Format(
             "Hotel: <b>{hotel_name}</b>\nAddress: <code>{address}</code>\n"
-            "<u>Rating:</u> {rating} ⭐️\n<u>Users rating:</u> {users_rating} 📈\n\n"
+            "<u>Rating:</u> {rating} ⭐️\n<u>Users rating:</u> {users_rating} 📈\n<u>Price:</u> {price}\n\n"
             "<i>About:</i> {about}\n\n<i>Around:</i> {around}"
         ),
         Row(
