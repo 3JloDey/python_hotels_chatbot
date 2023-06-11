@@ -1,25 +1,15 @@
-# type: ignore
 import asyncio
 import logging
 import os
-from typing import Optional
 
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram_dialog import setup_dialogs
 from dotenv import load_dotenv
 
+from bot.dialogs import register_user_dialogs
 from bot.handlers import register_user_handlers
-from bot.handlers.user_dialogs import main_dialogs
 
 logger = logging.getLogger(__name__)
-
-
-def register_all_handlers_and_dialogs(dp: Dispatcher) -> None:
-    """Handlers"""
-    register_user_handlers(dp)
-    """Dialogs"""
-    dp.include_router(main_dialogs())
 
 
 async def main() -> None:
@@ -33,14 +23,14 @@ async def main() -> None:
     )
 
     logger.info("Starting bot")
-    token: Optional[str] = os.getenv("BOT_TOKEN")
+    token = os.getenv("BOT_TOKEN", '')
 
     storage = MemoryStorage()
     bot = Bot(token=token, parse_mode="HTML")
     dp = Dispatcher(bot=bot, storage=storage)
 
-    register_all_handlers_and_dialogs(dp)
-    setup_dialogs(dp)
+    register_user_handlers(dp)
+    register_user_dialogs(dp)
 
     try:
         await bot.delete_webhook(drop_pending_updates=True)
