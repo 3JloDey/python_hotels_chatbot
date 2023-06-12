@@ -11,7 +11,7 @@ from bot.states import states
 
 
 async def pagination(clb: CallbackQuery, _: Button, manager: DialogManager) -> None:
-    index = manager.dialog_data.get("index_p", 0)
+    index = manager.dialog_data["index_p"]
     count_photos = len(manager.dialog_data["photos"])
     if count_photos > 1:
         index = manager.dialog_data.get("index_p", 0)
@@ -27,7 +27,9 @@ async def pagination(clb: CallbackQuery, _: Button, manager: DialogManager) -> N
 async def get_data(dialog_manager: DialogManager, **kwargs) -> dict[str, Any]:
     return {
         "photos": dialog_manager.dialog_data["photos"],
-        "current_photo": dialog_manager.dialog_data["photos"][dialog_manager.dialog_data.get('index_p', 0)],
+        "current_photo": dialog_manager.dialog_data["photos"][dialog_manager.dialog_data['index_p']],
+        "start_counter": dialog_manager.dialog_data['index_p'] + 1,
+        'max_counter': len(dialog_manager.dialog_data['photos']),
     }
 
 
@@ -37,6 +39,7 @@ def get_photo() -> Window:
         Format("<b>{current_photo[1]}</b>"),
         Row(
             Button(Const("◀️ Prev"), id="prev", on_click=pagination),
+            Button(Format("{start_counter}/{max_counter}"), id="count"),
             Button(Const("Next ▶️"), id="next", on_click=pagination),
         ),
         Button(

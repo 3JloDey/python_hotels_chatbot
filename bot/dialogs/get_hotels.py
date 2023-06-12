@@ -11,12 +11,19 @@ from bot.services import detail_information
 from bot.states import states
 
 
+async def like_hotel(clb: CallbackQuery, _: Button, manager: DialogManager) -> None:
+    # await clb.message.answer(clb.message.text)
+    await clb.answer("Hotel seved!", show_alert=False)
+
+
 async def search_photos(clb: CallbackQuery, _: Button, manager: DialogManager) -> None:
+    manager.dialog_data['index_p'] = manager.dialog_data.get('index_p', 0)
     await delete_geolocation(manager)
     await manager.switch_to(states.Dialog.PHOTOS)
 
 
 async def back_to_main(clb: CallbackQuery, _: Button, manager: DialogManager) -> None:
+    manager.dialog_data['index_p'] = 0
     await delete_geolocation(manager)
     await manager.switch_to(states.Dialog.MENU)
 
@@ -57,7 +64,7 @@ def get_hotels() -> Window:
         ),
         Row(
             Button(Const("◀️ Prev"), id="prev", on_click=pagination),
-            Button(Const("Like ❤️"), id="like"),
+            Button(Const("Like ❤️"), id="like", on_click=like_hotel),
             Button(Const("Next ▶️"), id="next", on_click=pagination),
         ),
         Row(
