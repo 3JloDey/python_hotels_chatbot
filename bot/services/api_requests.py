@@ -61,19 +61,24 @@ def hotels_list_id(id: str, sort: str, check_in: list, check_out: list) -> List[
     response = requests.post(url, json=payload, headers=headers).json()
     data = []
     for info in response["data"]["propertySearch"]["properties"]:
-        data.append(info["id"])
+        try:
+            id = info["id"]
+            price = info["price"]['displayMessages'][1]['lineItems'][0]['value']
+        except TypeError:
+            price = "No Data"
+        data.append((id, price))
     return data
 
 
-def detail_information(hotel_id) -> dict[str, Any]:
+def detail_information(hotel) -> dict[str, Any]:
     url = "https://hotels4.p.rapidapi.com/properties/v2/detail"
-
+    id, price = hotel
     payload = {
         "currency": "USD",
         "eapid": 1,
         "locale": "en_US",
         "siteId": 300000001,
-        "propertyId": f"{hotel_id}",
+        "propertyId": f"{id}",
     }
     headers = {
         "content-type": "application/json",
@@ -104,6 +109,7 @@ def detail_information(hotel_id) -> dict[str, Any]:
         "hotel_name": hotel_name,
         "address": address,
         "rating": rating,
+        'price': price,
         "around": around,
         "users_rating": users_rating,
         "about": about,
