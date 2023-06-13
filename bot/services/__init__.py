@@ -1,1 +1,1 @@
-from .api_requests import detail_information, hotels_list_id, locations_id
+from .api_requests import detail_information, get_list_hotels_id, locations_id

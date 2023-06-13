@@ -30,7 +30,9 @@ def locations_id(city: Optional[str]) -> list[tuple[str, str]]:
     return data
 
 
-def hotels_list_id(id: str, sort: str, check_in: list, check_out: list) -> List[Any]:
+def get_list_hotels_id(
+    id: str, sort: str, check_in: list, check_out: list
+) -> List[Any]:
     year_in, month_in, day_in = check_in
     year_out, month_out, day_out = check_out
     url = "https://hotels4.p.rapidapi.com/properties/v2/list"
@@ -63,7 +65,7 @@ def hotels_list_id(id: str, sort: str, check_in: list, check_out: list) -> List[
     for info in response["data"]["propertySearch"]["properties"]:
         try:
             id = info["id"]
-            price = info["price"]['displayMessages'][1]['lineItems'][0]['value']
+            price = info["price"]["displayMessages"][1]["lineItems"][0]["value"]
         except TypeError:
             price = "No Data"
         data.append((id, price))
@@ -89,19 +91,40 @@ def detail_information(hotel) -> dict[str, Any]:
     response = requests.post(url, json=payload, headers=headers).json()
 
     hotel_name = response["data"]["propertyInfo"]["summary"]["name"]
-    address = response["data"]["propertyInfo"]["summary"]["location"]["address"]["addressLine"]
-    around = "\n".join(response["data"]["propertyInfo"]["summary"]["location"]["whatsAround"]["editorial"]["content"])
-    about = response["data"]["propertyInfo"]["propertyContentSectionGroups"]["aboutThisProperty"]["sections"][0]["bodySubSections"][0]["elements"][0]["items"][0]["content"].get("text", "No Description")
-    latitude = response["data"]["propertyInfo"]["summary"]["location"]["coordinates"]["latitude"]
-    longitude = response["data"]["propertyInfo"]["summary"]["location"]["coordinates"]["longitude"]
-    users_rating = response["data"]["propertyInfo"]["reviewInfo"]["summary"]["overallScoreWithDescriptionA11y"]["value"] or "No user rating"
+    address = response["data"]["propertyInfo"]["summary"]["location"]["address"][
+        "addressLine"
+    ]
+    around = "\n".join(
+        response["data"]["propertyInfo"]["summary"]["location"]["whatsAround"][
+            "editorial"
+        ]["content"]
+    )
+    about = response["data"]["propertyInfo"]["propertyContentSectionGroups"][
+        "aboutThisProperty"
+    ]["sections"][0]["bodySubSections"][0]["elements"][0]["items"][0]["content"].get(
+        "text", "No Description"
+    )
+    latitude = response["data"]["propertyInfo"]["summary"]["location"]["coordinates"][
+        "latitude"
+    ]
+    longitude = response["data"]["propertyInfo"]["summary"]["location"]["coordinates"][
+        "longitude"
+    ]
+    users_rating = (
+        response["data"]["propertyInfo"]["reviewInfo"]["summary"][
+            "overallScoreWithDescriptionA11y"
+        ]["value"]
+        or "No user rating"
+    )
     photos = []
     for data in response["data"]["propertyInfo"]["propertyGallery"]["images"]:
         photo = data["image"]["url"]
-        description = data['image']["description"]
+        description = data["image"]["description"]
         photos.append((photo, description))
     try:
-        rating = response["data"]["propertyInfo"]["summary"]["overview"]["propertyRating"]["rating"]
+        rating = response["data"]["propertyInfo"]["summary"]["overview"][
+            "propertyRating"
+        ]["rating"]
     except (KeyError, TypeError):
         rating = "No Stars"
 
@@ -109,7 +132,7 @@ def detail_information(hotel) -> dict[str, Any]:
         "hotel_name": hotel_name,
         "address": address,
         "rating": rating,
-        'price': price,
+        "price": price,
         "around": around,
         "users_rating": users_rating,
         "about": about,

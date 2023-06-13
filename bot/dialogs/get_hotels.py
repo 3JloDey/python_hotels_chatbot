@@ -5,41 +5,36 @@ from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import Button, Row
 from aiogram_dialog.widgets.text import Const, Format
 
-from bot.dialogs.misc import is_photo
+from bot.dialogs.misc import is_photo, paginate
 from bot.dialogs.misc.geolocation import delete_geolocation, load_geolocation
 from bot.services import detail_information
 from bot.states import states
 
 
 async def like_hotel(clb: CallbackQuery, _: Button, manager: DialogManager) -> None:
-    # await clb.message.answer(clb.message.text)
-    await clb.answer("Hotel seved!", show_alert=False)
+    await clb.answer("Hotel saved!", show_alert=False)
 
 
 async def search_photos(clb: CallbackQuery, _: Button, manager: DialogManager) -> None:
-    manager.dialog_data['index_p'] = manager.dialog_data.get('index_p', 0)
+    manager.dialog_data['index_photo'] = manager.dialog_data.get('index_photo', 0)
     await delete_geolocation(manager)
     await manager.switch_to(states.Dialog.PHOTOS)
 
 
 async def back_to_main(clb: CallbackQuery, _: Button, manager: DialogManager) -> None:
-    manager.dialog_data['index_p'] = 0
+    manager.dialog_data['index_photo'] = 0
     await delete_geolocation(manager)
     await manager.switch_to(states.Dialog.MENU)
 
 
 async def pagination(clb: CallbackQuery, _: Button, manager: DialogManager) -> None:
     await delete_geolocation(manager)
-    index = manager.dialog_data.get("index", 0)
-    list_hotels_id = manager.dialog_data["list_hotels_id"]
+    list_hotels = manager.dialog_data["list_hotels"]
+    index = paginate(clb, manager.dialog_data.get("index", 0), list_hotels)
 
-    if clb.data == "next" and 0 <= index < len(list_hotels_id) - 1:
-        index += 1
-    elif clb.data == "prev" and 0 < index <= len(list_hotels_id) - 1:
-        index -= 1
     manager.dialog_data["index"] = index
-    manager.dialog_data['index_p'] = 0
-    detail_info: dict[str, Any] = detail_information(list_hotels_id[index])
+    manager.dialog_data['index_photo'] = 0
+    detail_info: dict[str, Any] = detail_information(list_hotels[index])
     manager.dialog_data.update(detail_info)
 
 
