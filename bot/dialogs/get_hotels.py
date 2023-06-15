@@ -16,13 +16,13 @@ async def like_hotel(clb: CallbackQuery, _: Button, manager: DialogManager) -> N
 
 
 async def search_photos(clb: CallbackQuery, _: Button, manager: DialogManager) -> None:
-    manager.dialog_data['index_photo'] = manager.dialog_data.get('index_photo', 0)
+    manager.dialog_data["index_photo"] = manager.dialog_data.get("index_photo", 0)
     await delete_geolocation(manager)
     await manager.switch_to(states.Dialog.PHOTOS)
 
 
 async def back_to_main(clb: CallbackQuery, _: Button, manager: DialogManager) -> None:
-    manager.dialog_data['index_photo'] = 0
+    manager.dialog_data["index_photo"] = 0
     await delete_geolocation(manager)
     await manager.switch_to(states.Dialog.MENU)
 
@@ -33,7 +33,7 @@ async def pagination(clb: CallbackQuery, _: Button, manager: DialogManager) -> N
     index = paginate(clb, manager.dialog_data.get("index", 0), list_hotels)
 
     manager.dialog_data["index"] = index
-    manager.dialog_data['index_photo'] = 0
+    manager.dialog_data["index_photo"] = 0
     detail_info: dict[str, Any] = detail_information(list_hotels[index])
     manager.dialog_data.update(detail_info)
 

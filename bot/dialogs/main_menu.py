@@ -10,17 +10,17 @@ from bot.services.api_requests import detail_information, get_list_hotels_id
 from bot.states import states
 
 
-async def get_data(dialog_manager: DialogManager, **kwargs) -> dict[str, Any]:
-    return {
-        "city": dialog_manager.dialog_data["city"],
-        "check_in": dialog_manager.dialog_data["check_in_date"],
-        "check_out": dialog_manager.dialog_data["check_out_date"],
-    }
+async def start_again(clb: CallbackQuery, _: Button, manager: DialogManager) -> None:
+    await manager.start(state=states.Dialog.MAIN)
 
 
 async def select_hotels(clb: CallbackQuery, _: Button, manager: DialogManager) -> None:
-    check_in: list[int] = list(map(int, manager.dialog_data["check_in_date"].split("-")))
-    check_out: list[int] = list(map(int, manager.dialog_data["check_out_date"].split("-")))
+    check_in: list[int] = list(
+        map(int, manager.dialog_data["check_in_date"].split("-"))
+    )
+    check_out: list[int] = list(
+        map(int, manager.dialog_data["check_out_date"].split("-"))
+    )
     list_hotels: list[str] = get_list_hotels_id(
         id=manager.dialog_data["id"],
         sort=clb.data,
@@ -39,6 +39,14 @@ async def select_hotels(clb: CallbackQuery, _: Button, manager: DialogManager) -
         await manager.switch_to(states.Dialog.HOTELS)
 
 
+async def get_data(dialog_manager: DialogManager, **kwargs) -> dict[str, Any]:
+    return {
+        "city": dialog_manager.dialog_data["city"],
+        "check_in": dialog_manager.dialog_data["check_in_date"],
+        "check_out": dialog_manager.dialog_data["check_out_date"],
+    }
+
+
 def main_menu() -> Window:
     return Window(
         Format("City: {city}\nCheck in: {check_in}\nCheck out: {check_out}"),
@@ -52,9 +60,10 @@ def main_menu() -> Window:
             Button(Const("Best deal 🔥"), id="PRICE_RELEVANT", on_click=select_hotels),
         ),
         Row(
-            Button(Const("History 📜"), id="history"),
-            SwitchTo(Const("Settings 🛠"), id="settings", state=states.Dialog.SETTINGS),
+            Button(Const("Favorites ❤️"), id="favorite"),
+            SwitchTo(Const("Settings ⚙️"), id="settings", state=states.Dialog.SETTINGS),
         ),
+        Button(Const("Re-entering data again 🗒"), id="again", on_click=start_again),
         state=states.Dialog.MENU,
         getter=get_data,
     )
