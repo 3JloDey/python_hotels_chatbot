@@ -2,26 +2,20 @@
 from typing import Any
 
 from aiogram.types import CallbackQuery
-from aiogram_dialog import DialogManager, Window
-from aiogram_dialog.widgets.kbd import Button, Row, SwitchTo
+from aiogram_dialog import DialogManager, Window, StartMode
+from aiogram_dialog.widgets.kbd import Button, Row, SwitchTo, Start
 from aiogram_dialog.widgets.text import Const, Format
 
-from bot.services.api_requests import detail_information, get_list_hotels_id
+from bot.services.api_requests import API_interface, detail_information
 from bot.states import states
 
 
-async def start_again(clb: CallbackQuery, _: Button, manager: DialogManager) -> None:
-    await manager.start(state=states.Dialog.MAIN)
-
-
 async def select_hotels(clb: CallbackQuery, _: Button, manager: DialogManager) -> None:
-    check_in: list[int] = list(
-        map(int, manager.dialog_data["check_in_date"].split("-"))
-    )
-    check_out: list[int] = list(
-        map(int, manager.dialog_data["check_out_date"].split("-"))
-    )
-    list_hotels: list[str] = get_list_hotels_id(
+    check_in: list[int] = list(map(int, manager.dialog_data["check_in_date"].split("-")))
+    check_out: list[int] = list(map(int, manager.dialog_data["check_out_date"].split("-")))
+
+    api: API_interface = manager.middleware_data["api"]
+    list_hotels: list[tuple[str, str]] = api.get_list_hotels_id(
         id=manager.dialog_data["id"],
         sort=clb.data,
         check_in=check_in,
@@ -63,7 +57,7 @@ def main_menu() -> Window:
             Button(Const("Favorites ❤️"), id="favorite"),
             SwitchTo(Const("Settings ⚙️"), id="settings", state=states.Dialog.SETTINGS),
         ),
-        Button(Const("Re-entering data again 🗒"), id="again", on_click=start_again),
+        Start(Const("Re-entering data again 🗒"), id="start", state=states.Dialog.MAIN, mode=StartMode.RESET_STACK),
         state=states.Dialog.MENU,
         getter=get_data,
     )

@@ -1,13 +1,24 @@
+# type: ignore
 from aiogram.types import ContentType, Message
 from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.text import Const, Format
 
-from bot.services import locations_id
+from bot.services.api_requests import API_interface
 from bot.states import states
 
 
 async def get_data(dialog_manager: DialogManager, **kwargs) -> dict[str, str]:
+    """
+    Gets data from the dialog manager.
+
+    Args:
+        dialog_manager (DialogManager): The dialog manager to get data from.
+        **kwargs: Additional keyword arguments.
+
+    Returns:
+        dict[str, str]: A dictionary of data.
+    """
     return {
         "greeting": ""
         if dialog_manager.dialog_data.get("settings_complite")
@@ -18,7 +29,19 @@ async def get_data(dialog_manager: DialogManager, **kwargs) -> dict[str, str]:
 async def geting_city_ids(
     msg: Message, _: MessageInput, manager: DialogManager
 ) -> None:
-    locations: list[tuple[str, str]] = locations_id(msg.text)
+    """
+    Gets city IDs from an API and saves them to the dialog manager.
+
+    Args:
+        msg (Message): The message containing the user's input.
+        _: MessageInput: Unused argument.
+        manager (DialogManager): The dialog manager to save data to.
+
+    Returns:
+        None
+    """
+    api: API_interface = manager.middleware_data["api"]
+    locations: list[tuple[str, str]] = api.get_variants_locations(msg.text)
 
     if locations:
         manager.dialog_data["locations"] = locations
@@ -28,6 +51,12 @@ async def geting_city_ids(
 
 
 def city_request() -> Window:
+    """
+    Creates a window for requesting the user's desired city.
+
+    Returns:
+        Window: A window for requesting the user's desired city.
+    """
     return Window(
         Format("{greeting}"),
         Const("Enter the city where you would like to search"),

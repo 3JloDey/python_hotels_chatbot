@@ -7,6 +7,18 @@ from aiogram_dialog import DialogManager
 
 
 async def load_geolocation(clb: CallbackQuery, _: Any, manager: DialogManager) -> None:
+    """
+    A coroutine function that loads a geolocation message in response to a callback query.
+
+    Args:
+        clb (CallbackQuery): The callback query from the user.
+        _ (Any): Unused argument.
+        manager (DialogManager): The dialog manager for managing conversation flow.
+
+    Returns:
+        None
+
+    """
     if isinstance(clb.message, Message):
         latitude = manager.dialog_data["latitude"]
         longitude = manager.dialog_data["longitude"]
@@ -18,6 +30,16 @@ async def load_geolocation(clb: CallbackQuery, _: Any, manager: DialogManager) -
 
 
 async def delete_geolocation(manager: DialogManager) -> None:
+    """
+    A coroutine function that deletes a previously loaded geolocation message.
+
+    Args:
+        manager (DialogManager): The dialog manager for managing conversation flow.
+
+    Returns:
+        None
+
+    """
     with suppress(TelegramBadRequest):
         location = manager.dialog_data.get("message_id")
         if location is not None:

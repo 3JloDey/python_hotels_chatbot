@@ -7,6 +7,12 @@ from bot.states import states
 
 
 def settings() -> Window:
+    """
+    Returns a Window object representing the settings menu.
+
+    Returns:
+        Window: The aiogram Window object.
+    """
     return Window(
         Const("Settings menu"),
         Row(
@@ -15,11 +21,6 @@ def settings() -> Window:
                 id="change_city",
                 state=states.Dialog.MAIN,
             ),
-            # SwitchTo(
-            #     Const("Change count of photos"),
-            #     id="change_photo",
-            #     state=SearchHotels.photo_request,
-            # ),
         ),
         Row(
             SwitchTo(
