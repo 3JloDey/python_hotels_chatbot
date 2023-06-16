@@ -1,1 +1,1 @@
-from .main import register_user_dialogs
+from .user_dialogs import register_user_dialogs

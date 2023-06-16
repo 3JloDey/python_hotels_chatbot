@@ -13,12 +13,15 @@ async def load_geolocation(clb: CallbackQuery, _: Any, manager: DialogManager) -
         location = await clb.message.answer_location(
             latitude=latitude, longitude=longitude, disable_notification=True
         )
-        manager.dialog_data["location"] = location
+        manager.dialog_data["message_id"] = location.message_id
+        manager.dialog_data["chat_id"] = location.chat.id
 
 
 async def delete_geolocation(manager: DialogManager) -> None:
     with suppress(TelegramBadRequest):
-        location = manager.dialog_data.get("location")
+        location = manager.dialog_data.get("message_id")
         if location is not None:
-            await location.delete()
-            del manager.dialog_data["location"]
+            chat_id = manager.dialog_data["chat_id"]
+            message_id = manager.dialog_data["message_id"]
+            bot = manager.middleware_data["bot"]
+            await bot.delete_message(chat_id=chat_id, message_id=message_id)

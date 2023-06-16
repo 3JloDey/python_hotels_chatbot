@@ -6,30 +6,21 @@ from aiogram_dialog.widgets.kbd import Button, Row
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Const, Format
 
-from bot.dialogs.misc import go_back
+from bot.dialogs.misc import go_back, paginate
 from bot.states import states
 
 
 async def pagination(clb: CallbackQuery, _: Button, manager: DialogManager) -> None:
-    index = manager.dialog_data["index_p"]
-    count_photos = len(manager.dialog_data["photos"])
-    if count_photos > 1:
-        index = manager.dialog_data.get("index_p", 0)
-
-        if clb.data == "next" and 0 <= index < count_photos - 1:
-            index += 1
-        elif clb.data == "prev" and 0 < index <= count_photos - 1:
-            index -= 1
-        manager.dialog_data["index_p"] = index
-        manager.dialog_data['current_photo'] = manager.dialog_data['photos'][index]
+    index = paginate(clb, manager.dialog_data["index_photo"], manager.dialog_data["photos"])
+    manager.dialog_data["index_photo"] = index
+    manager.dialog_data["current_photo"] = manager.dialog_data["photos"][index]
 
 
 async def get_data(dialog_manager: DialogManager, **kwargs) -> dict[str, Any]:
     return {
-        "photos": dialog_manager.dialog_data["photos"],
-        "current_photo": dialog_manager.dialog_data["photos"][dialog_manager.dialog_data['index_p']],
-        "start_counter": dialog_manager.dialog_data['index_p'] + 1,
-        'max_counter': len(dialog_manager.dialog_data['photos']),
+        "current_photo": dialog_manager.dialog_data["photos"][dialog_manager.dialog_data["index_photo"]],
+        "current_counter": dialog_manager.dialog_data["index_photo"] + 1,
+        "max_counter": len(dialog_manager.dialog_data["photos"]),
     }
 
 
@@ -39,7 +30,7 @@ def get_photo() -> Window:
         Format("<b>{current_photo[1]}</b>"),
         Row(
             Button(Const("◀️ Prev"), id="prev", on_click=pagination),
-            Button(Format("{start_counter}/{max_counter}"), id="count"),
+            Button(Format("{current_counter}/{max_counter}"), id="count"),
             Button(Const("Next ▶️"), id="next", on_click=pagination),
         ),
         Button(
