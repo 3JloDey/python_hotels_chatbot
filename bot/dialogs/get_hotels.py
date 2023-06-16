@@ -7,7 +7,6 @@ from aiogram_dialog.widgets.text import Const, Format
 
 from bot.dialogs.misc import paginate
 from bot.dialogs.misc.geolocation import delete_geolocation, load_geolocation
-from bot.services import detail_information
 from bot.states import states
 
 
@@ -34,7 +33,8 @@ async def pagination(clb: CallbackQuery, _: Button, manager: DialogManager) -> N
 
     manager.dialog_data["index"] = index
     manager.dialog_data["index_photo"] = 0
-    detail_info: dict[str, Any] = detail_information(list_hotels[index])
+    api = manager.middleware_data['api']
+    detail_info: dict[str, Any] = api.get_detail_information(list_hotels[index])
     manager.dialog_data.update(detail_info)
 
 

@@ -1,10 +1,7 @@
-import os
-from typing import Any
 from contextlib import suppress
-import requests
-from dotenv import load_dotenv
+from typing import Any
 
-load_dotenv()
+import requests
 
 
 class API_interface:
@@ -66,72 +63,27 @@ class API_interface:
             data.append((hotel_id, price))
         return data
 
+    def get_detail_information(self, hotel) -> dict[str, Any]:
+        url = "https://hotels4.p.rapidapi.com/properties/v2/detail"
+        id, price = hotel
+        payload = {
+            "currency": "USD",
+            "eapid": 1,
+            "locale": "en_US",
+            "siteId": 300000001,
+            "propertyId": f"{id}",
+        }
+        response = requests.post(url, json=payload, headers=self.__headers).json()
 
-def detail_information(hotel) -> dict[str, Any]:
-    url = "https://hotels4.p.rapidapi.com/properties/v2/detail"
-    id, price = hotel
-    payload = {
-        "currency": "USD",
-        "eapid": 1,
-        "locale": "en_US",
-        "siteId": 300000001,
-        "propertyId": f"{id}",
-    }
-    headers = {
-        "content-type": "application/json",
-        "X-RapidAPI-Key": f"{os.getenv('API_TOKEN')}",
-        "X-RapidAPI-Host": "hotels4.p.rapidapi.com",
-    }
-
-    response = requests.post(url, json=payload, headers=headers).json()
-
-    hotel_name = response["data"]["propertyInfo"]["summary"]["name"]
-    address = response["data"]["propertyInfo"]["summary"]["location"]["address"][
-        "addressLine"
-    ]
-    around = "\n".join(
-        response["data"]["propertyInfo"]["summary"]["location"]["whatsAround"][
-            "editorial"
-        ]["content"]
-    )
-    about = response["data"]["propertyInfo"]["propertyContentSectionGroups"][
-        "aboutThisProperty"
-    ]["sections"][0]["bodySubSections"][0]["elements"][0]["items"][0]["content"].get(
-        "text", "No Description"
-    )
-    latitude = response["data"]["propertyInfo"]["summary"]["location"]["coordinates"][
-        "latitude"
-    ]
-    longitude = response["data"]["propertyInfo"]["summary"]["location"]["coordinates"][
-        "longitude"
-    ]
-    users_rating = (
-        response["data"]["propertyInfo"]["reviewInfo"]["summary"][
-            "overallScoreWithDescriptionA11y"
-        ]["value"]
-        or "No user rating"
-    )
-    photos = []
-    for data in response["data"]["propertyInfo"]["propertyGallery"]["images"]:
-        photo = data["image"]["url"]
-        description = data["image"]["description"]
-        photos.append((photo, description))
-    try:
-        rating = response["data"]["propertyInfo"]["summary"]["overview"][
-            "propertyRating"
-        ]["rating"]
-    except (KeyError, TypeError):
-        rating = "No Stars"
-
-    return {
-        "hotel_name": hotel_name,
-        "address": address,
-        "rating": rating,
-        "price": price,
-        "around": around,
-        "users_rating": users_rating,
-        "about": about,
-        "photos": photos,
-        "latitude": latitude,
-        "longitude": longitude,
-    }
+        return {
+            "hotel_name": response["data"]["propertyInfo"]["summary"]["name"],
+            "address": response["data"]["propertyInfo"]["summary"]["location"]["address"]["addressLine"],
+            "rating": response["data"]["propertyInfo"]["summary"]["overview"]["propertyRating"].get("rating") or "No rating",
+            "price": price,
+            "around": response["data"]["propertyInfo"]["summary"]["location"]["whatsAround"]["editorial"]["content"][0],
+            "users_rating": response["data"]["propertyInfo"]["reviewInfo"]["summary"]["overallScoreWithDescriptionA11y"].get("value") or "No user rating",
+            "about": response["data"]["propertyInfo"]["propertyContentSectionGroups"]["aboutThisProperty"]["sections"][0]["bodySubSections"][0]["elements"][0]["items"][0]["content"].get('text') or "No data",
+            "photos": [(data["image"]["url"], data["image"]["description"]) for data in response["data"]["propertyInfo"]["propertyGallery"]["images"]],
+            "latitude": float(response["data"]["propertyInfo"]["summary"]["location"]["coordinates"].get("latitude", 0)),
+            "longitude": float(response["data"]["propertyInfo"]["summary"]["location"]["coordinates"].get("longitude", 0)),
+        }
