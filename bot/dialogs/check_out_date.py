@@ -17,16 +17,34 @@ async def date_confirm(
     manager: DialogManager,
     selected_date: date,
 ) -> None:
+    """
+    Handles the confirmation of a selected date in the check-out calendar.
+
+    Args:
+        clb (CallbackQuery): The aiogram CallbackQuery object.
+        _: (ManagedCalendarAdapter): The adapter for the managed calendar.
+        manager (DialogManager): The aiogram DialogManager object.
+        selected_date (date): The selected date as a Python date object.
+
+    Returns:
+        None
+    """
     date = str(selected_date)
     if check_out_date_validator(manager, date) is False:
         await validation_error(clb, date)
     else:
-        manager.dialog_data['settings_complite'] = True
+        manager.dialog_data["settings_complite"] = True
         manager.dialog_data["check_out_date"] = date
         await manager.switch_to(states.Dialog.MENU)
 
 
 def check_out_date() -> Window:
+    """
+    Creates a window for selecting the check-out date.
+
+    Returns:
+        Window: The created aiogram Window object.
+    """
     return Window(
         Const("Select check out date"),
         CustomCalendar(id="check_in", on_click=date_confirm),

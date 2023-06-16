@@ -13,17 +13,21 @@ from bot.dialogs.get_photo import get_photo
 
 
 def register_user_dialogs(dp: Dispatcher) -> None:
+    """
+    Registers user dialogs in the dispatcher.
+
+    Args:
+        dp (Dispatcher): The aiogram Dispatcher object.
+    """
     dialogs = Dialog(
-        *[
-            city_request(),
-            city_confirm(),
-            check_in_date(),
-            check_out_date(),
-            main_menu(),
-            settings(),
-            get_hotels(),
-            get_photo()
-        ]
+        *[city_request(),
+          city_confirm(),
+          check_in_date(),
+          check_out_date(),
+          main_menu(),
+          settings(),
+          get_hotels(),
+          get_photo()]
     )
     dp.include_router(dialogs)
     setup_dialogs(dp)

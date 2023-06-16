@@ -23,6 +23,14 @@ MONTHS_NUMBERS = [(1, 2, 3), (4, 5, 6), (7, 8, 9), (10, 11, 12)]
 
 
 class CustomCalendar(Calendar):
+    """
+    A custom calendar class that extends the `Calendar` class.
+
+    Attributes:
+        None
+
+    """
+
     def __init__(self, *args: Any, **kwds: Any) -> None:
         super().__init__(*args, **kwds)
 

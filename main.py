@@ -1,17 +1,18 @@
 import asyncio
 from typing import Union
-from aiogram.filters.command import CommandStart
 
 import betterlogging as logging
 from aiogram import Bot, Dispatcher, F
 from aiogram.enums import ParseMode
+from aiogram.filters.command import CommandStart
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.storage.redis import DefaultKeyBuilder, RedisStorage
 
 from bot.config import Config, load_config
 from bot.dialogs import register_user_dialogs
 from bot.handlers.user_handlers import command_start
-from bot.middlewares.config_middleware import ConfigMiddleware
+from bot.middlewares.environment_middleware import EnvironmentMiddleware
+from bot.services.api_requests import API_interface
 
 logger = logging.getLogger(__name__)
 
@@ -27,20 +28,21 @@ async def main() -> None:
 
     storage: Union[MemoryStorage, RedisStorage]
     # Choosing FSM storage
-    if config.bot_fsm_storage == "memory":
+    if config.tg_bot.use_redis is False:
         storage = MemoryStorage()
     else:
         storage = RedisStorage.from_url(
-            config.redis_dsn, key_builder=DefaultKeyBuilder(with_destiny=True)
+            config.redis.url, key_builder=DefaultKeyBuilder(with_destiny=True)
         )
 
-    bot = Bot(token=config.bot_token, parse_mode=ParseMode.HTML)
+    bot = Bot(token=config.tg_bot.token, parse_mode=ParseMode.HTML)
     dp = Dispatcher(bot=bot, storage=storage)
+    api = API_interface(config.tg_bot.api_token)
 
     # Allow interaction in private chats (not groups or channels) only
     dp.message.filter(F.chat.type == "private")
     # Register middlewares
-    dp.callback_query.middleware.register(ConfigMiddleware(config=config, bot=bot))
+    dp.update.middleware.register(EnvironmentMiddleware(config=config, bot=bot, api=api))
     # Register handlers
     dp.message.register(command_start, CommandStart())
     # Register dialogs

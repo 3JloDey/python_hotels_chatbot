@@ -5,7 +5,7 @@ from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import Button, Row
 from aiogram_dialog.widgets.text import Const, Format
 
-from bot.dialogs.misc import is_photo, paginate
+from bot.dialogs.misc import paginate
 from bot.dialogs.misc.geolocation import delete_geolocation, load_geolocation
 from bot.services import detail_information
 from bot.states import states
@@ -67,7 +67,6 @@ def get_hotels() -> Window:
                 Const("Search Photos 📸"),
                 id="photos",
                 on_click=search_photos,
-                when=is_photo,
             ),
             Button(
                 Const("Send geolocation 🗺"), id="location", on_click=load_geolocation
