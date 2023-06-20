@@ -79,15 +79,19 @@ class API_interface:
                 clean_url = re.sub(r'\?.*$', '', data["image"]["url"])
                 description = data["image"]["description"] or 'No description'
                 photos.append((clean_url, description))
-
+            stars, user_rating, around, about = 'No Stars', 'No User Rating', 'No Data', 'No Data'
             try:
                 #  If the key comes with an EMPTY string, then the default value is set
                 stars = des["data"]["propertyInfo"]["summary"]["overview"]["propertyRating"]["rating"] or 'No Stars'
-                user_rating = des["data"]["propertyInfo"]["reviewInfo"]["summary"]["overallScoreWithDescriptionA11y"]["value"] or 'No User Rating'
-                around = des["data"]["propertyInfo"]["summary"]["location"]["whatsAround"]["editorial"]["content"][0] or 'No Data'
-                about = des["data"]["propertyInfo"]["propertyContentSectionGroups"]["aboutThisProperty"]["sections"][0]["bodySubSections"][0]["elements"][0]["items"][0]["content"]["text"] or 'No Data'
+                user_rating = des["data"]["propertyInfo"]["reviewInfo"]["summary"]["overallScoreWithDescriptionA11y"][
+                                  "value"] or 'No User Rating'
+                around = des["data"]["propertyInfo"]["summary"]["location"]["whatsAround"]["editorial"]["content"][
+                             0] or 'No Data'
+                about = des["data"]["propertyInfo"]["propertyContentSectionGroups"]["aboutThisProperty"]["sections"][0][
+                            "bodySubSections"][0]["elements"][0]["items"][0]["content"]["text"] or 'No Data'
 
-            #  If an error occurs in the dictionary key, it is checked in which variable the error occurred and the default key is set
+            # If an error occurs in the dictionary key, it is checked in which variable the error occurred and the
+            # default key is set
             except (AttributeError, KeyError, TypeError) as exc:
                 if 'stars' in str(exc):
                     stars = 'No Stars'
@@ -108,5 +112,6 @@ class API_interface:
                 "about": about,
                 "photos": photos,
                 "latitude": float(des["data"]["propertyInfo"]["summary"]["location"]["coordinates"].get("latitude", 0)),
-                "longitude": float(des["data"]["propertyInfo"]["summary"]["location"]["coordinates"].get("longitude", 0)),
+                "longitude": float(
+                    des["data"]["propertyInfo"]["summary"]["location"]["coordinates"].get("longitude", 0)),
             }

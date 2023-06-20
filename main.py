@@ -17,15 +17,17 @@ from bot.services.api_requests import API_interface
 logger = logging.getLogger(__name__)
 
 
+async def on_startup():
+    logger.info("Starting bot")
+
+
 async def main() -> None:
     logging.basic_colorized_config(
         level=logging.INFO,
         format="%(filename)s:%(lineno)d #%(levelname)-8s [%(asctime)s] - %(name)s - %(message)s",
     )
 
-    logger.info("Starting bot")
     config: Config = load_config(".env")
-
     storage: Union[MemoryStorage, RedisStorage]
     # Choosing FSM storage
     if config.tg_bot.use_redis is False:
@@ -44,6 +46,7 @@ async def main() -> None:
     # Register middlewares
     dp.update.middleware.register(EnvironmentMiddleware(config=config, bot=bot, api=api))
     # Register handlers
+    dp.startup.register(on_startup)
     dp.message.register(command_start, CommandStart())
     # Register dialogs
     register_user_dialogs(dp)
