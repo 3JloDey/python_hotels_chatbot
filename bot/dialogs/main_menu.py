@@ -6,21 +6,21 @@ from aiogram_dialog import DialogManager, Window, StartMode
 from aiogram_dialog.widgets.kbd import Button, Row, SwitchTo, Start
 from aiogram_dialog.widgets.text import Const, Format
 
-from bot.services.api_requests import API_interface, detail_information
+from bot.services.api_requests import API_interface
 from bot.states import states
 
 
 async def select_hotels(clb: CallbackQuery, _: Button, manager: DialogManager) -> None:
-    check_in: list[int] = list(map(int, manager.dialog_data["check_in_date"].split("-")))
-    check_out: list[int] = list(map(int, manager.dialog_data["check_out_date"].split("-")))
+    check_in = list(map(int, manager.dialog_data["check_in_date"].split("-")))
+    check_out = list(map(int, manager.dialog_data["check_out_date"].split("-")))
 
     api: API_interface = manager.middleware_data["api"]
-    list_hotels: list[tuple[str, str]] = api.get_list_hotels_id(
-        id=manager.dialog_data["id"],
-        sort=clb.data,
-        check_in=check_in,
-        check_out=check_out,
-    )
+    list_hotels: list[tuple[str, str]] = await api.get_list_hotels_id(
+            regId=manager.dialog_data["id"],
+            sort=clb.data,
+            check_in=check_in,
+            check_out=check_out,
+        )
 
     if not list_hotels:
         text = "Hotels not found. Please select another city or try again later"
@@ -28,8 +28,8 @@ async def select_hotels(clb: CallbackQuery, _: Button, manager: DialogManager) -
 
     else:
         manager.dialog_data["list_hotels"] = list_hotels
-        index = manager.dialog_data.get("index", 0)
-        manager.dialog_data.update(detail_information(list_hotels[index]))
+        manager.dialog_data["index"] = 0
+        manager.dialog_data.update(await api.get_detail_information(list_hotels[manager.dialog_data["index"]]))
         await manager.switch_to(states.Dialog.HOTELS)
 
 
