@@ -34,7 +34,7 @@ async def pagination(clb: CallbackQuery, _: Button, manager: DialogManager) -> N
     manager.dialog_data["index"] = index
     manager.dialog_data["index_photo"] = 0
     api = manager.middleware_data['api']
-    detail_info: dict[str, Any] = api.get_detail_information(list_hotels[index])
+    detail_info: dict[str, Any] = await api.get_detail_information(list_hotels[index])
     manager.dialog_data.update(detail_info)
 
 
