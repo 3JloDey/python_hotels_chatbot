@@ -28,12 +28,8 @@ async def select_hotels(clb: CallbackQuery, _: Button, manager: DialogManager) -
 
     else:
         manager.dialog_data["list_hotels"] = list_hotels
-        index = manager.dialog_data.get("index", 0)
-        try:
-            manager.dialog_data.update(await api.get_detail_information(list_hotels[index]))
-        except IndexError:
-            manager.dialog_data["index"] = 0
-            manager.dialog_data.update(await api.get_detail_information(list_hotels[manager.dialog_data["index"]]))
+        manager.dialog_data["index"] = 0
+        manager.dialog_data.update(await api.get_detail_information(list_hotels[manager.dialog_data["index"]]))
         await manager.switch_to(states.Dialog.HOTELS)
 
 

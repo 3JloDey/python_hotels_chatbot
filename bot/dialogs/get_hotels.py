@@ -29,7 +29,7 @@ async def back_to_main(clb: CallbackQuery, _: Button, manager: DialogManager) ->
 async def pagination(clb: CallbackQuery, _: Button, manager: DialogManager) -> None:
     await delete_geolocation(manager)
     list_hotels = manager.dialog_data["list_hotels"]
-    index = paginate(clb, manager.dialog_data.get("index", 0), list_hotels)
+    index = paginate(clb, manager.dialog_data['index'], list_hotels)
 
     manager.dialog_data["index"] = index
     manager.dialog_data["index_photo"] = 0

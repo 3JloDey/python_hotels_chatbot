@@ -1,4 +1,4 @@
-import json
+import orjson
 import re
 from typing import Any
 
@@ -24,12 +24,9 @@ class API_interface:
         async with httpx.AsyncClient() as ahtx:
             response = await ahtx.get(url, headers=self.__headers, params=querystring)
             data: list[tuple[str, str]] = []
-            for item in json.loads(response.text)["sr"]:
-                if item["type"] not in ("HOTEL" "AIRPORT"):
-                    city_id = str(item["gaiaId"])
-                    city_name = str(item["regionNames"]["displayName"])
-
-                    data.append((city_id, city_name))
+            for item in orjson.loads(response.text)["sr"]:
+                if item["type"] not in ("HOTEL", "AIRPORT"):
+                    data.append((item["gaiaId"], item["regionNames"]["displayName"]))
             return data
 
     async def get_list_hotels_id(self, regId: str, sort: str, check_in: list, check_out: list) -> list[tuple[str, str]]:
@@ -52,10 +49,10 @@ class API_interface:
             "availableFilter": "SHOW_AVAILABLE_ONLY"
         }
 
-        async with httpx.AsyncClient(timeout=httpx.Timeout(10.0)) as ahtx:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(12.0)) as ahtx:
             response = await ahtx.post(url, json=payload, headers=self.__headers)
             data: list[tuple[str, str]] = []
-            for info in json.loads(response.text)["data"]["propertySearch"]["properties"]:
+            for info in orjson.loads(response.text)["data"]["propertySearch"]["properties"]:
                 try:
                     hotel_id = info["id"]
                     price = info["price"]["displayMessages"][1]["lineItems"][0].get("value", 'No Data')
@@ -74,24 +71,26 @@ class API_interface:
             "siteId": 300000001,
             "propertyId": f"{id}",
         }
-        async with httpx.AsyncClient(timeout=httpx.Timeout(10.0)) as ahtx:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(12.0)) as ahtx:
             response = await ahtx.post(url, json=payload, headers=self.__headers)
-            des = json.loads(response.text)
-            photos = []
+            des = orjson.loads(response.text)
+            photos: list[tuple[str, str]] = []
             for data in des["data"]["propertyInfo"]["propertyGallery"]["images"]:
                 clean_url = re.sub(r'\?.*$', '', data["image"]["url"])
                 description = data["image"]["description"] or 'No description'
                 photos.append((clean_url, description))
 
             try:
-                rating = des["data"]["propertyInfo"]["summary"]["overview"]["propertyRating"]["rating"] or 'No Stars'
+                #  If the key comes with an EMPTY string, then the default value is set
+                stars = des["data"]["propertyInfo"]["summary"]["overview"]["propertyRating"]["rating"] or 'No Stars'
                 user_rating = des["data"]["propertyInfo"]["reviewInfo"]["summary"]["overallScoreWithDescriptionA11y"]["value"] or 'No User Rating'
                 around = des["data"]["propertyInfo"]["summary"]["location"]["whatsAround"]["editorial"]["content"][0] or 'No Data'
                 about = des["data"]["propertyInfo"]["propertyContentSectionGroups"]["aboutThisProperty"]["sections"][0]["bodySubSections"][0]["elements"][0]["items"][0]["content"]["text"] or 'No Data'
 
+            #  If an error occurs in the dictionary key, it is checked in which variable the error occurred and the default key is set
             except (AttributeError, KeyError, TypeError) as exc:
-                if 'rating' in str(exc):
-                    rating = 'No Stars'
+                if 'stars' in str(exc):
+                    stars = 'No Stars'
                 elif 'user_rating' in str(exc):
                     user_rating = 'No User Rating'
                 elif 'around' in str(exc):
@@ -102,7 +101,7 @@ class API_interface:
             return {
                 "hotel_name": des["data"]["propertyInfo"]["summary"]["name"],
                 "address": des["data"]["propertyInfo"]["summary"]["location"]["address"]["addressLine"],
-                "rating": rating,
+                "rating": stars,
                 "price": price,
                 "around": around,
                 "users_rating": user_rating,
