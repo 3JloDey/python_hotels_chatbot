@@ -23,6 +23,7 @@ async def on_startup(bot: Bot) -> None:
     await set_commands(bot)
 
 
+
 async def main() -> None:
     logging.basic_colorized_config(
         level=logging.INFO,
@@ -30,6 +31,7 @@ async def main() -> None:
     )
 
     config: Config = load_config(".env")
+
     # Choosing FSM storage
     if config.tg_bot.use_redis is False:
         storage = MemoryStorage()

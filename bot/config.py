@@ -34,6 +34,23 @@ class Redis:
 
 
 @dataclass
+class DB:
+    """
+    A class representing a Telegram bot.
+
+    Attributes:
+        USER (str): .
+        PSWD (str): .
+        DB (str): .
+
+    """
+    database: str
+    users: str
+    password: str
+    host: str
+
+
+@dataclass
 class Config:
     """
     A class representing the configuration of the application.
@@ -46,6 +63,7 @@ class Config:
 
     tg_bot: TgBot
     redis: Redis
+    db: DB
 
 
 def load_config(path: str | None = None) -> Config:
@@ -66,7 +84,14 @@ def load_config(path: str | None = None) -> Config:
         tg_bot=TgBot(
             token=env.str("BOT_TOKEN"),
             use_redis=env.bool("USE_REDIS"),
-            api_token=env.str("API_TOKEN"),
+            api_token=env.str("API_TOKEN")
+
         ),
         redis=Redis(url=env.str("REDIS_DSN")),
+        db=DB(
+            database=env.str("DB_NAME"),
+            password=env.str("PSWD"),
+            host=env.str("HOST"),
+            users=env.str("USER")
+        ),
     )

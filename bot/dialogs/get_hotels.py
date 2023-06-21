@@ -6,6 +6,7 @@ from aiogram_dialog.widgets.kbd import Button, Row
 from aiogram_dialog.widgets.text import Const, Format
 
 from bot.dialogs.misc import pagination
+from bot.database.update_table import update_table
 from bot.dialogs.misc.geolocation import delete_geolocation, load_geolocation
 from bot.dialogs.misc.hide_buttons import is_found_location
 from bot.services.api_requests import API_interface
@@ -13,6 +14,7 @@ from bot.states import states
 
 
 async def like_hotel(clb: CallbackQuery, _: Button, manager: DialogManager) -> None:
+    await update_table(clb, manager)
     await clb.answer("Hotel saved!", show_alert=False)
 
 

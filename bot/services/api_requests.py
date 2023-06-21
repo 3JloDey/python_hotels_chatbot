@@ -85,6 +85,7 @@ class API_interface:
             response = await ahtx.post(url, json=payload, headers=self.__headers)
             data = orjson.loads(response.text)
             photos: list[tuple[str, str]] = []
+
             for image in data["data"]["propertyInfo"]["propertyGallery"]["images"]:
                 image_url = re.sub(r'\?.*$', '', image["image"]["url"])
                 image_description = image["image"]["description"] or 'No description'
