@@ -1,8 +1,8 @@
-import orjson
 import re
 from typing import Any
 
 import httpx
+import orjson
 
 
 class API_interface:
@@ -12,6 +12,15 @@ class API_interface:
             "X-RapidAPI-Key": f"{api_token}",
             "X-RapidAPI-Host": "hotels4.p.rapidapi.com",
         }
+
+    @staticmethod
+    async def __get_value(data, keys, default='No Data') -> str | Any:
+        for key in keys:
+            try:
+                data = data[key]
+            except (TypeError, KeyError, AttributeError):
+                return default
+        return data or default
 
     async def get_variants_locations(self, city_from_user: str) -> list[tuple[str, str]]:
         url = "https://hotels4.p.rapidapi.com/locations/v3/search"
@@ -71,47 +80,38 @@ class API_interface:
             "siteId": 300000001,
             "propertyId": f"{id}",
         }
-        async with httpx.AsyncClient(timeout=httpx.Timeout(12.0)) as ahtx:
-            response = await ahtx.post(url, json=payload, headers=self.__headers)
-            des = orjson.loads(response.text)
-            photos: list[tuple[str, str]] = []
-            for data in des["data"]["propertyInfo"]["propertyGallery"]["images"]:
-                clean_url = re.sub(r'\?.*$', '', data["image"]["url"])
-                description = data["image"]["description"] or 'No description'
-                photos.append((clean_url, description))
-            stars, user_rating, around, about = 'No Stars', 'No User Rating', 'No Data', 'No Data'
-            try:
-                #  If the key comes with an EMPTY string, then the default value is set
-                stars = des["data"]["propertyInfo"]["summary"]["overview"]["propertyRating"]["rating"] or 'No Stars'
-                user_rating = des["data"]["propertyInfo"]["reviewInfo"]["summary"]["overallScoreWithDescriptionA11y"][
-                                  "value"] or 'No User Rating'
-                around = des["data"]["propertyInfo"]["summary"]["location"]["whatsAround"]["editorial"]["content"][
-                             0] or 'No Data'
-                about = des["data"]["propertyInfo"]["propertyContentSectionGroups"]["aboutThisProperty"]["sections"][0][
-                            "bodySubSections"][0]["elements"][0]["items"][0]["content"]["text"] or 'No Data'
 
-            # If an error occurs in the dictionary key, it is checked in which variable the error occurred and the
-            # default key is set
-            except (AttributeError, KeyError, TypeError) as exc:
-                if 'stars' in str(exc):
-                    stars = 'No Stars'
-                elif 'user_rating' in str(exc):
-                    user_rating = 'No User Rating'
-                elif 'around' in str(exc):
-                    around = 'No Data'
-                elif 'about' in str(exc):
-                    about = 'No Data'
+        async with httpx.AsyncClient(timeout=httpx.Timeout(15.0)) as ahtx:
+            response = await ahtx.post(url, json=payload, headers=self.__headers)
+            data = orjson.loads(response.text)
+            photos: list[tuple[str, str]] = []
+
+            for image in data["data"]["propertyInfo"]["propertyGallery"]["images"]:
+                image_url = re.sub(r'\?.*$', '', image["image"]["url"])
+                image_description = image["image"]["description"] or 'No description'
+                photos.append((image_url, image_description))
+
+            stars = await self.__get_value(data, ["data", "propertyInfo", "summary", "overview", "propertyRating", "rating"], 'No Stars')
+
+            user_rating = await self.__get_value(data, ["data", "propertyInfo", "reviewInfo", "summary",
+                                                        "overallScoreWithDescriptionA11y", "value"], 'No User Rating')
+
+            around = await self.__get_value(data, ["data", "propertyInfo", "summary", "location", "whatsAround",
+                                                   "editorial", "content", 0])
+
+            about = await self.__get_value(data, ["data", "propertyInfo", "propertyContentSectionGroups",
+                                                  "aboutThisProperty", "sections", 0, "bodySubSections",
+                                                  0, "elements", 0, "items", 0, "content", "text"])
 
             return {
-                "hotel_name": des["data"]["propertyInfo"]["summary"]["name"],
-                "address": des["data"]["propertyInfo"]["summary"]["location"]["address"]["addressLine"],
+                "hotel_name": data["data"]["propertyInfo"]["summary"]["name"],
+                "address": data["data"]["propertyInfo"]["summary"]["location"]["address"]["addressLine"],
                 "rating": stars,
                 "price": price,
                 "around": around,
                 "users_rating": user_rating,
                 "about": about,
                 "photos": photos,
-                "latitude": float(des["data"]["propertyInfo"]["summary"]["location"]["coordinates"].get("latitude", 0)),
-                "longitude": float(
-                    des["data"]["propertyInfo"]["summary"]["location"]["coordinates"].get("longitude", 0)),
+                "latitude": data["data"]["propertyInfo"]["summary"]["location"]["coordinates"].get("latitude"),
+                "longitude": data["data"]["propertyInfo"]["summary"]["location"]["coordinates"].get("longitude"),
             }

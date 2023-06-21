@@ -2,7 +2,7 @@
 from aiogram.types import CallbackQuery
 
 
-def paginate(clb: CallbackQuery, index: int, lst: list) -> int:
+async def pagination(clb: CallbackQuery, index: int, lst: list) -> int:
     """
     A function that paginates through a list of items based on user input.
 

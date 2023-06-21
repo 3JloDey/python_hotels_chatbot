@@ -6,12 +6,13 @@ from aiogram_dialog.widgets.kbd import Button, Row
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Const, Format
 
-from bot.dialogs.misc import go_back, paginate
+from bot.dialogs.misc.back import go_back
+from bot.dialogs.misc import pagination
 from bot.states import states
 
 
-async def pagination(clb: CallbackQuery, _: Button, manager: DialogManager) -> None:
-    index = paginate(clb, manager.dialog_data["index_photo"], manager.dialog_data["photos"])
+async def switch_photo(clb: CallbackQuery, _: Button, manager: DialogManager) -> None:
+    index = await pagination(clb, manager.dialog_data["index_photo"], manager.dialog_data["photos"])
     manager.dialog_data["index_photo"] = index
     manager.dialog_data["current_photo"] = manager.dialog_data["photos"][index]
 
@@ -29,9 +30,9 @@ def get_photo() -> Window:
         StaticMedia(url=Format("{current_photo[0]}")),
         Format("<b>{current_photo[1]}</b>"),
         Row(
-            Button(Const("◀️ Prev"), id="prev", on_click=pagination),
+            Button(Const("◀️ Prev"), id="prev", on_click=switch_photo),
             Button(Format("{current_counter}/{max_counter}"), id="count"),
-            Button(Const("Next ▶️"), id="next", on_click=pagination),
+            Button(Const("Next ▶️"), id="next", on_click=switch_photo),
         ),
         Button(
             Const("⬅️ Back"),
