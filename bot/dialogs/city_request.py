@@ -26,9 +26,7 @@ async def get_data(dialog_manager: DialogManager, **kwargs) -> dict[str, str]:
     }
 
 
-async def geting_city_ids(
-    msg: Message, _: MessageInput, manager: DialogManager
-) -> None:
+async def geting_city_ids(msg: Message, _: MessageInput, manager: DialogManager) -> None:
     """
     Gets city IDs from an API and saves them to the dialog manager.
 

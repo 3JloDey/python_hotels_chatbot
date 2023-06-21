@@ -14,7 +14,7 @@ class API_interface:
         }
 
     @staticmethod
-    async def get_value(data, keys, default='No Data') -> str | Any:
+    async def __get_value(data, keys, default='No Data') -> str | Any:
         for key in keys:
             try:
                 data = data[key]
@@ -81,19 +81,26 @@ class API_interface:
             "propertyId": f"{id}",
         }
 
-        async with httpx.AsyncClient(timeout=httpx.Timeout(12.0)) as ahtx:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(15.0)) as ahtx:
             response = await ahtx.post(url, json=payload, headers=self.__headers)
             data = orjson.loads(response.text)
             photos: list[tuple[str, str]] = []
-            for data in data["data"]["propertyInfo"]["propertyGallery"]["images"]:
-                clean_url = re.sub(r'\?.*$', '', data["image"]["url"])
-                description = data["image"]["description"] or 'No description'
-                photos.append((clean_url, description))
+            for image in data["data"]["propertyInfo"]["propertyGallery"]["images"]:
+                image_url = re.sub(r'\?.*$', '', image["image"]["url"])
+                image_description = image["image"]["description"] or 'No description'
+                photos.append((image_url, image_description))
 
-            stars = await self.get_value(data, ["data", "propertyInfo", "summary", "overview", "propertyRating", "rating"], 'No Stars')
-            user_rating = await self.get_value(data, ["data", "propertyInfo", "reviewInfo", "summary", "overallScoreWithDescriptionA11y", "value"], 'No User Rating')
-            around = await self.get_value(data, ["data", "propertyInfo", "summary", "location", "whatsAround", "editorial", "content", 0], 'No Data')
-            about = await self.get_value(data, ["data", "propertyInfo", "propertyContentSectionGroups", "aboutThisProperty", "sections", 0, "bodySubSections", 0, "elements", 0, "items", 0, "content", "text"], 'No Data')
+            stars = await self.__get_value(data, ["data", "propertyInfo", "summary", "overview", "propertyRating", "rating"], 'No Stars')
+
+            user_rating = await self.__get_value(data, ["data", "propertyInfo", "reviewInfo", "summary",
+                                                        "overallScoreWithDescriptionA11y", "value"], 'No User Rating')
+
+            around = await self.__get_value(data, ["data", "propertyInfo", "summary", "location", "whatsAround",
+                                                   "editorial", "content", 0])
+
+            about = await self.__get_value(data, ["data", "propertyInfo", "propertyContentSectionGroups",
+                                                  "aboutThisProperty", "sections", 0, "bodySubSections",
+                                                  0, "elements", 0, "items", 0, "content", "text"])
 
             return {
                 "hotel_name": data["data"]["propertyInfo"]["summary"]["name"],
@@ -104,6 +111,6 @@ class API_interface:
                 "users_rating": user_rating,
                 "about": about,
                 "photos": photos,
-                "latitude": float(data["data"]["propertyInfo"]["summary"]["location"]["coordinates"].get("latitude", 0)),
-                "longitude": float(data["data"]["propertyInfo"]["summary"]["location"]["coordinates"].get("longitude", 0)),
+                "latitude": data["data"]["propertyInfo"]["summary"]["location"]["coordinates"].get("latitude"),
+                "longitude": data["data"]["propertyInfo"]["summary"]["location"]["coordinates"].get("longitude"),
             }

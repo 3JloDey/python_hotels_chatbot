@@ -2,7 +2,9 @@ from aiogram_dialog import DialogManager
 from aiogram_dialog.widgets.common import Whenable
 
 
-def is_settings_not_complite(data: dict, widget: Whenable, manager: DialogManager) -> bool:
+def is_settings_not_complite(
+    data: dict, widget: Whenable, manager: DialogManager
+) -> bool:
     """
     A function that checks whether user settings are complete.
 
@@ -16,3 +18,9 @@ def is_settings_not_complite(data: dict, widget: Whenable, manager: DialogManage
 
     """
     return manager.dialog_data.get("settings_complite") is None
+
+
+def is_found_location(data: dict, widget: Whenable, manager: DialogManager) -> bool:
+    if manager.dialog_data.get("latitude") and manager.dialog_data.get("longitude"):
+        return True
+    return False

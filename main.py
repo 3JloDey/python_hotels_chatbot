@@ -34,9 +34,7 @@ async def main() -> None:
     if config.tg_bot.use_redis is False:
         storage = MemoryStorage()
     else:
-        storage = RedisStorage.from_url(
-            config.redis.url, key_builder=DefaultKeyBuilder(with_destiny=True)
-        )
+        storage = RedisStorage.from_url(config.redis.url, key_builder=DefaultKeyBuilder(with_destiny=True))
 
     bot = Bot(token=config.tg_bot.token, parse_mode=ParseMode.HTML)
     dp = Dispatcher(bot=bot, storage=storage)
@@ -44,9 +42,7 @@ async def main() -> None:
 
     # Register middlewares
     dp.message.middleware.register(PrivatOnlyMiddleware())
-    dp.update.middleware.register(
-        EnvironmentMiddleware(config=config, bot=bot, api=api)
-    )
+    dp.update.middleware.register(EnvironmentMiddleware(config=config, bot=bot, api=api))
     # Register handlers
     dp.startup.register(on_startup)
     dp.message.register(command_start, CommandStart())
