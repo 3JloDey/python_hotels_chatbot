@@ -2,7 +2,7 @@ from aiogram_dialog import Window
 from aiogram_dialog.widgets.kbd import Button, Row, SwitchTo
 from aiogram_dialog.widgets.text import Const
 
-from bot.dialogs.misc import go_back
+from bot.dialogs.misc.back import go_back
 from bot.states import states
 
 

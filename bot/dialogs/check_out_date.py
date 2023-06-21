@@ -5,9 +5,10 @@ from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import Button, ManagedCalendarAdapter
 from aiogram_dialog.widgets.text import Const
 
-from bot.dialogs.misc import go_back, is_settings_not_complite
+from bot.dialogs.misc.back import go_back
+from bot.dialogs.misc.calendar import CustomCalendar
+from bot.dialogs.misc.hide_buttons import is_settings_not_complite
 from bot.states import states
-from bot.utils import CustomCalendar
 from bot.utils.date_validation import check_out_date_validator, validation_error
 
 
