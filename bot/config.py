@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+import betterlogging as logging
 from environs import Env
 
 
@@ -22,6 +23,16 @@ class TgBot:
 
 @dataclass
 class Database:
+    """Represents a database connection.
+
+    Attributes:
+        username (str): The username used to connect to the database.
+        password (str): The password used to connect to the database.
+        host (str): The hostname or IP address of the database server.
+        name (str): The name of the database.
+        port (int): The port number used to connect to the database.
+    """
+
     username: str
     password: str
     host: str
@@ -71,6 +82,7 @@ def load_config(path: str | None = None) -> Config:
     """
     env = Env()
     env.read_env(path)
+    logging.info("Loaded configuration from environment")
 
     return Config(
         tg_bot=TgBot(
