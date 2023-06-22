@@ -17,7 +17,6 @@ from bot.handlers.user_handlers import command_start
 from bot.middlewares.privat_middleware import PrivatOnlyMiddleware
 from bot.services.api_requests import API_interface
 from bot.utils import set_commands
-from bot.utils.logging import load_logging_handlers
 
 logger = logging.getLogger(__name__)
 
@@ -28,9 +27,10 @@ async def on_startup(bot: Bot) -> None:
 
 
 async def main() -> None:
-    # Load logging handlers for the logger
-    load_logging_handlers(logger)
-    logging.basic_colorized_config(level=logging.INFO)
+    logging.basic_colorized_config(
+        level=logging.INFO,
+        format="%(filename)s:%(lineno)d #%(levelname)-8s [%(asctime)s] - %(name)s - %(message)s",
+    )
 
     config: Config = load_config(".env")
 

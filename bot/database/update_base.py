@@ -41,4 +41,3 @@ async def update_table(clb: CallbackQuery, manager: DialogManager, session_maker
                     longitude=longitude,
                 )
             )
-    # await session.commit()
