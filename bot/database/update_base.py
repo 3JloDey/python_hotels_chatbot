@@ -1,5 +1,6 @@
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from bot.models.hotel import Hotel
@@ -25,19 +26,23 @@ async def update_table(clb: CallbackQuery, manager: DialogManager, session_maker
 
     async with session_maker() as session:
         async with session.begin():
-            session.add(
-                Hotel(
-                    id_user=id_user,
-                    hotel_name=hotel_name,
-                    address=address,
-                    rating=rating,
-                    price=price,
-                    around=around,
-                    users_rating=users_rating,
-                    about=about,
-                    photos_url=photos_url,
-                    photos_description=photos_description,
-                    latitude=latitude,
-                    longitude=longitude,
-                )
+            stmt = select(Hotel).where(and_(Hotel.id_user == id_user, Hotel.hotel_name == hotel_name))
+            result = await session.execute(stmt)
+            existing_hotel = result.scalars().first()
+            if existing_hotel is None:
+                session.add(
+                    Hotel(
+                        id_user=id_user,
+                        hotel_name=hotel_name,
+                        address=address,
+                        rating=rating,
+                        price=price,
+                        around=around,
+                        users_rating=users_rating,
+                        about=about,
+                        photos_url=photos_url,
+                        photos_description=photos_description,
+                        latitude=latitude,
+                        longitude=longitude,
+                    )
             )

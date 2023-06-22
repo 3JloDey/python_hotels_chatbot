@@ -35,8 +35,8 @@ class Database:
 
     username: str
     password: str
-    host: str
     name: str
+    host: str
     port: int
 
 
@@ -94,8 +94,8 @@ def load_config(path: str | None = None) -> Config:
         db=Database(
             username=env.str("DB_USERNAME"),
             password=env.str("DB_PASSWORD"),
-            host=env.str("DB_HOST"),
             name=env.str("DB_NAME"),
+            host=env.str("DB_HOST"),
             port=env.str("DB_PORT"),
         ),
     )
