@@ -7,18 +7,17 @@ from aiogram.filters.command import CommandStart
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.storage.redis import DefaultKeyBuilder, RedisStorage
 from sqlalchemy import URL
+from sqlalchemy.ext.asyncio.session import async_sessionmaker
 
 from bot.config import Config, load_config
 from bot.database.base import Base
-from sqlalchemy.ext.asyncio.session import async_sessionmaker
-
-from bot.database.engine import create_engine, proceed_schemas
+from bot.database.engine import async_engine_create, proceed_schemas
 from bot.dialogs import register_user_dialogs
 from bot.handlers.user_handlers import command_start
 from bot.middlewares.privat_middleware import PrivatOnlyMiddleware
 from bot.services.api_requests import API_interface
 from bot.utils import set_commands
-
+from bot.utils.logging import load_logging_handlers
 
 logger = logging.getLogger(__name__)
 
@@ -29,10 +28,9 @@ async def on_startup(bot: Bot) -> None:
 
 
 async def main() -> None:
-    logging.basic_colorized_config(
-        level=logging.INFO,
-        format="%(filename)s:%(lineno)d #%(levelname)-8s [%(asctime)s] - %(name)s - %(message)s",
-    )
+    # Load logging handlers for the logger
+    load_logging_handlers(logger)
+    logging.basic_colorized_config(level=logging.INFO)
 
     config: Config = load_config(".env")
 
@@ -48,6 +46,7 @@ async def main() -> None:
     dp = Dispatcher(bot=bot, storage=storage)
     api = API_interface(config.tg_bot.api_token)
 
+    # Create a URL for connecting to a PostgreSQL database using asyncpg driver
     postgres_url = URL.create(
         drivername="postgresql+asyncpg",
         username=config.db.username,
@@ -56,8 +55,11 @@ async def main() -> None:
         database=config.db.name,
         port=config.db.port,
     )
-    async_engine = create_engine(postgres_url)
+    # Create an engine for the database connection
+    async_engine = async_engine_create(postgres_url)
+    # Proceed with creating schemas in the database using SQLAlchemy's Base metadata
     await proceed_schemas(async_engine, Base.metadata)
+    # Create a session maker for the database connection using asyncpg
     session_maker = async_sessionmaker(async_engine)
 
     # Register middlewares
