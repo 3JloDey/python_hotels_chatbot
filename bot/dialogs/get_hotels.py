@@ -5,17 +5,37 @@ from aiogram_dialog import DialogManager, Window
 from aiogram_dialog.widgets.kbd import Button, Row
 from aiogram_dialog.widgets.text import Const, Format
 
+from bot.database import delete_hotels, select_hotels, update_hotels
 from bot.dialogs.misc import pagination
 from bot.dialogs.misc.geolocation import delete_geolocation, load_geolocation
-from bot.dialogs.misc.hide_buttons import is_found_location, dislike, like
-from bot.services.api_requests import API_interface
-from bot.database.update_base import update_table
+from bot.dialogs.misc.hide_buttons import dislike, is_found_location, like
 from bot.states import states
 
 
+async def dislike_hotel(clb: CallbackQuery, _: Button, manager: DialogManager) -> None:
+    user_id = clb.from_user.id
+    hotel_name = manager.dialog_data["hotel_name"]
+    session_maker = manager.middleware_data["session"]
+    
+    # Delete from favorite
+    await delete_hotels(user_id=user_id, hotel_name=hotel_name, session_maker=session_maker)
+    await clb.answer("Hotel deleted successfully")
+    
+    # Update data
+    list_hotels = await select_hotels(user_id=user_id, session_maker=session_maker)
+    if len(list_hotels) == 0:
+        manager.dialog_data["is_favorite"] = False
+        await manager.switch_to(states.Dialog.MENU)
+    else:
+        index = await pagination(clb, manager.dialog_data.get("index_hotel", 0), list_hotels)
+        manager.dialog_data["index_hotel"] = index
+        manager.dialog_data['list_hotels'] = list_hotels
+        manager.dialog_data.update(list_hotels[manager.dialog_data["index_hotel"]])
+
+
 async def like_hotel(clb: CallbackQuery, _: Button, manager: DialogManager) -> None:
-    async_session = manager.middleware_data['session']
-    await update_table(clb, manager, async_session)
+    async_session = manager.middleware_data["session"]
+    await update_hotels(clb, manager, async_session)
     await clb.answer("Hotel saved!", show_alert=False)
 
 
@@ -25,8 +45,9 @@ async def search_photos(clb: CallbackQuery, _: Button, manager: DialogManager) -
 
 
 async def back_to_main(clb: CallbackQuery, _: Button, manager: DialogManager) -> None:
+    manager.dialog_data["index_hotel"] = 0
     manager.dialog_data["index_photo"] = 0
-    manager.dialog_data['is_favorite'] = False
+    manager.dialog_data["is_favorite"] = False
     await delete_geolocation(manager)
     await manager.switch_to(states.Dialog.MENU)
 
@@ -34,19 +55,21 @@ async def back_to_main(clb: CallbackQuery, _: Button, manager: DialogManager) ->
 async def switch_hotels(clb: CallbackQuery, _: Button, manager: DialogManager) -> None:
     await delete_geolocation(manager)
     list_hotels = manager.dialog_data["list_hotels"]
-    index = await pagination(clb, manager.dialog_data["index"], list_hotels)
+    index = await pagination(
+        clb, manager.dialog_data.get("index_hotel", 0), list_hotels
+    )
 
-    manager.dialog_data["index"] = index
+    manager.dialog_data["index_hotel"] = index
     manager.dialog_data["index_photo"] = 0
-    
-    if manager.dialog_data.get('is_favorite') is False:
-        api: API_interface = manager.middleware_data["api"]
-        detail_info: dict[str, Any] = await api.get_detail_information(list_hotels[index])
-        manager.dialog_data.update(detail_info)
+
+    if manager.dialog_data.get("is_favorite"):
+        manager.dialog_data.update(list_hotels[index])
+
     else:
-        manager.dialog_data.update(list_hotels[index]) 
-    
-    
+        api = manager.middleware_data["api"]
+        detail_info = await api.get_detail_information(list_hotels[index])
+        manager.dialog_data.update(detail_info)
+
 
 async def get_data(dialog_manager: DialogManager, **kwargs) -> dict[str, Any]:
     return {
@@ -70,7 +93,7 @@ def get_hotels() -> Window:
         Row(
             Button(Const("◀️ Prev"), id="prev", on_click=switch_hotels),
             Button(Const("Like ❤️"), id="like", on_click=like_hotel, when=like),
-            Button(Const("Dislike 💔"), id="dislike", when=dislike),
+            Button(Const("Dislike 💔"), id="dislike", on_click=dislike_hotel, when=dislike),
             Button(Const("Next ▶️"), id="next", on_click=switch_hotels),
         ),
         Row(
