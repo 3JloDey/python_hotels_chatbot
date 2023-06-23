@@ -6,9 +6,20 @@ from aiogram_dialog import DialogManager, Window, StartMode
 from aiogram_dialog.widgets.kbd import Button, Row, SwitchTo, Start
 from aiogram_dialog.widgets.text import Const, Format
 
+from bot.database.select_base import get_hotels_by_user_id
 from bot.services.api_requests import API_interface
 from bot.states import states
 
+
+async def get_favorites(clb: CallbackQuery, _: Button, manager: DialogManager) -> None:
+    session_maker = manager.middleware_data['session']
+    list_hotels = await get_hotels_by_user_id(user_id=clb.from_user.id, session_maker=session_maker)
+    manager.dialog_data['is_favorite'] = True
+    manager.dialog_data['list_hotels'] = list_hotels
+    manager.dialog_data['index'] = 0
+    manager.dialog_data.update(list_hotels[manager.dialog_data['index']])
+    await manager.switch_to(states.Dialog.HOTELS)
+    
 
 async def select_hotels(clb: CallbackQuery, _: Button, manager: DialogManager) -> None:
     check_in = list(map(int, manager.dialog_data["check_in_date"].split("-")))
@@ -16,17 +27,18 @@ async def select_hotels(clb: CallbackQuery, _: Button, manager: DialogManager) -
 
     api: API_interface = manager.middleware_data["api"]
     list_hotels: list[tuple[str, str]] = await api.get_list_hotels_id(
-            regId=manager.dialog_data["id"],
-            sort=clb.data,
-            check_in=check_in,
-            check_out=check_out,
-        )
+        regId=manager.dialog_data["id"],
+        sort=clb.data,
+        check_in=check_in,
+        check_out=check_out,
+    )
 
     if not list_hotels:
         text = "Hotels not found. Please select another city or try again later"
         await clb.answer(text=text, show_alert=True)
 
     else:
+        manager.dialog_data['is_favorited'] = True
         manager.dialog_data["list_hotels"] = list_hotels
         manager.dialog_data["index"] = 0
         manager.dialog_data.update(await api.get_detail_information(list_hotels[manager.dialog_data["index"]]))
@@ -54,7 +66,7 @@ def main_menu() -> Window:
             Button(Const("Best deal 🔥"), id="PRICE_RELEVANT", on_click=select_hotels),
         ),
         Row(
-            Button(Const("Favorites ❤️"), id="favorite"),
+            Button(Const("Favorites ❤️"), id="favorite", on_click=get_favorites),
             SwitchTo(Const("Settings ⚙️"), id="settings", state=states.Dialog.SETTINGS),
         ),
         Start(Const("Re-entering data again 🗒"), id="start", state=states.Dialog.MAIN, mode=StartMode.RESET_STACK),

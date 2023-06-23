@@ -24,3 +24,11 @@ def is_found_location(data: dict, widget: Whenable, manager: DialogManager) -> b
     if manager.dialog_data.get("latitude") and manager.dialog_data.get("longitude"):
         return True
     return False
+
+
+def dislike(data: dict, widget: Whenable, manager: DialogManager) -> bool:
+    return manager.dialog_data.get('is_favorite', False)
+
+
+def like(data: dict, widget: Whenable, manager: DialogManager) -> bool:
+    return not manager.dialog_data.get('is_favorite', False)
