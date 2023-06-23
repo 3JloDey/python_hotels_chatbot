@@ -7,7 +7,7 @@ from aiogram_dialog.widgets.text import Const, Format
 
 from bot.dialogs.misc import pagination
 from bot.dialogs.misc.geolocation import delete_geolocation, load_geolocation
-from bot.dialogs.misc.hide_buttons import is_found_location
+from bot.dialogs.misc.hide_buttons import is_found_location, dislike, like
 from bot.services.api_requests import API_interface
 from bot.database.update_base import update_table
 from bot.states import states
@@ -26,6 +26,7 @@ async def search_photos(clb: CallbackQuery, _: Button, manager: DialogManager) -
 
 async def back_to_main(clb: CallbackQuery, _: Button, manager: DialogManager) -> None:
     manager.dialog_data["index_photo"] = 0
+    manager.dialog_data['is_favorite'] = False
     await delete_geolocation(manager)
     await manager.switch_to(states.Dialog.MENU)
 
@@ -37,10 +38,15 @@ async def switch_hotels(clb: CallbackQuery, _: Button, manager: DialogManager) -
 
     manager.dialog_data["index"] = index
     manager.dialog_data["index_photo"] = 0
-    api: API_interface = manager.middleware_data["api"]
-    detail_info: dict[str, Any] = await api.get_detail_information(list_hotels[index])
-    manager.dialog_data.update(detail_info)
-
+    
+    if manager.dialog_data.get('is_favorite') is False:
+        api: API_interface = manager.middleware_data["api"]
+        detail_info: dict[str, Any] = await api.get_detail_information(list_hotels[index])
+        manager.dialog_data.update(detail_info)
+    else:
+        manager.dialog_data.update(list_hotels[index]) 
+    
+    
 
 async def get_data(dialog_manager: DialogManager, **kwargs) -> dict[str, Any]:
     return {
@@ -63,7 +69,8 @@ def get_hotels() -> Window:
         ),
         Row(
             Button(Const("◀️ Prev"), id="prev", on_click=switch_hotels),
-            Button(Const("Like ❤️"), id="like", on_click=like_hotel),
+            Button(Const("Like ❤️"), id="like", on_click=like_hotel, when=like),
+            Button(Const("Dislike 💔"), id="dislike", when=dislike),
             Button(Const("Next ▶️"), id="next", on_click=switch_hotels),
         ),
         Row(

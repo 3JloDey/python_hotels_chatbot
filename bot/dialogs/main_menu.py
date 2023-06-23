@@ -13,8 +13,13 @@ from bot.states import states
 
 async def get_favorites(clb: CallbackQuery, _: Button, manager: DialogManager) -> None:
     session_maker = manager.middleware_data['session']
-    await get_hotels_by_user_id(user_id=clb.from_user.id, session_maker=session_maker)
-
+    list_hotels = await get_hotels_by_user_id(user_id=clb.from_user.id, session_maker=session_maker)
+    manager.dialog_data['is_favorite'] = True
+    manager.dialog_data['list_hotels'] = list_hotels
+    manager.dialog_data['index'] = 0
+    manager.dialog_data.update(list_hotels[manager.dialog_data['index']])
+    await manager.switch_to(states.Dialog.HOTELS)
+    
 
 async def select_hotels(clb: CallbackQuery, _: Button, manager: DialogManager) -> None:
     check_in = list(map(int, manager.dialog_data["check_in_date"].split("-")))
@@ -33,6 +38,7 @@ async def select_hotels(clb: CallbackQuery, _: Button, manager: DialogManager) -
         await clb.answer(text=text, show_alert=True)
 
     else:
+        manager.dialog_data['is_favorited'] = True
         manager.dialog_data["list_hotels"] = list_hotels
         manager.dialog_data["index"] = 0
         manager.dialog_data.update(await api.get_detail_information(list_hotels[manager.dialog_data["index"]]))
