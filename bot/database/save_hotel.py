@@ -6,7 +6,20 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 from bot.models.hotel import Hotel
 
 
-async def update_hotels(clb: CallbackQuery, manager: DialogManager, session_maker: async_sessionmaker) -> None:
+async def add_hotel_to_favorite(
+    clb: CallbackQuery, manager: DialogManager, session_maker: async_sessionmaker
+) -> None:
+    """Add a new hotel to the user's favorites.
+
+    Args:
+        clb (CallbackQuery): The callback query that triggered the addition.
+        manager (DialogManager): The dialog manager used to retrieve data from the dialog.
+        session_maker (async_sessionmaker): An async session maker object used to create a new
+            database session.
+
+    Returns:
+        None
+    """
     id_user = int(clb.from_user.id)
     hotel_name = str(manager.dialog_data["hotel_name"])
     address = str(manager.dialog_data["address"])

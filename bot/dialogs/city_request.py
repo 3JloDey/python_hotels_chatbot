@@ -38,7 +38,7 @@ async def geting_city_ids(msg: Message, _: MessageInput, manager: DialogManager)
     Returns:
         None
     """
-    api: API_interface = manager.middleware_data["api"]
+    api = manager.middleware_data["api"]
     locations: list[tuple[str, str]] = await api.get_variants_locations(msg.text)
 
     if locations:

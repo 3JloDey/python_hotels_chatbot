@@ -21,14 +21,44 @@ def is_settings_not_complite(
 
 
 def is_found_location(data: dict, widget: Whenable, manager: DialogManager) -> bool:
+    """Checks if the location data is found in the dialog manager.
+    
+    Args:
+    - data (dict): dictionary containing data to be checked
+    - widget (Whenable): object used to check if a certain condition is met
+    - manager (DialogManager): object that manages the dialog
+    
+    Returns:
+    - bool: True if latitude and longitude are found in the dialog manager's data, False otherwise
+    """
     if manager.dialog_data.get("latitude") and manager.dialog_data.get("longitude"):
         return True
     return False
 
 
 def dislike(data: dict, widget: Whenable, manager: DialogManager) -> bool:
+    """Checks if the current item is marked as not favorite in the dialog manager.
+    
+    Args:
+    - data (dict): dictionary containing data to be checked
+    - widget (Whenable): object used to check if a certain condition is met
+    - manager (DialogManager): object that manages the dialog
+    
+    Returns:
+    - bool: True if the current item is marked as not favorite in the dialog manager's data, False otherwise
+    """
     return manager.dialog_data.get('is_favorite', False)
 
 
 def like(data: dict, widget: Whenable, manager: DialogManager) -> bool:
+    """Checks if the current item is marked as favorite in the dialog manager.
+    
+    Args:
+    - data (dict): dictionary containing data to be checked
+    - widget (Whenable): object used to check if a certain condition is met
+    - manager (DialogManager): object that manages the dialog
+    
+    Returns:
+    - bool: True if the current item is marked as favorite in the dialog manager's data, False otherwise
+    """
     return not manager.dialog_data.get('is_favorite', False)

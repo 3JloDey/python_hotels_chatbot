@@ -22,11 +22,17 @@ logger = logging.getLogger(__name__)
 
 
 async def on_startup(bot: Bot) -> None:
+    """Function to be called on bot startup.
+
+    Args:
+        bot (Bot): The bot instance.
+    """
     logger.info("Starting bot")
     await set_commands(bot)
 
 
 async def main() -> None:
+    """Main function that starts the bot."""
     logging.basic_colorized_config(
         level=logging.INFO,
         format="%(filename)s:%(lineno)d #%(levelname)-8s [%(asctime)s] - %(name)s - %(message)s",

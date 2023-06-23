@@ -9,7 +9,7 @@ from bot.dialogs.city_request import city_request
 from bot.dialogs.get_hotels import get_hotels
 from bot.dialogs.get_photo import get_photo
 from bot.dialogs.main_menu import main_menu
-from bot.dialogs.settings import settings
+from bot.dialogs.settings_menu import settings
 
 
 def register_user_dialogs(dp: Dispatcher) -> None:
