@@ -1,5 +1,5 @@
 from aiogram_dialog import Window
-from aiogram_dialog.widgets.kbd import Button, Row, SwitchTo
+from aiogram_dialog.widgets.kbd import Button, Column, SwitchTo
 from aiogram_dialog.widgets.text import Const
 
 from bot.dialogs.misc.back import go_back
@@ -15,14 +15,12 @@ def settings() -> Window:
     """
     return Window(
         Const("Settings menu"),
-        Row(
+        Column(
             SwitchTo(
                 Const("Change city"),
                 id="change_city",
                 state=states.Dialog.MAIN,
             ),
-        ),
-        Row(
             SwitchTo(
                 Const("Change check in date"),
                 id="change_check_in",

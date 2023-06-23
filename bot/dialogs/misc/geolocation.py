@@ -25,8 +25,7 @@ async def load_geolocation(clb: CallbackQuery, _: Any, manager: DialogManager) -
         location = await clb.message.answer_location(
             latitude=latitude, longitude=longitude, disable_notification=True
         )
-        del manager.dialog_data["latitude"]
-        del manager.dialog_data["longitude"]
+
         manager.dialog_data["message_id"] = location.message_id
         manager.dialog_data["chat_id"] = location.chat.id
 
