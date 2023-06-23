@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 from bot.models.hotel import Hotel
 
 
-async def update_table(clb: CallbackQuery, manager: DialogManager, session_maker: async_sessionmaker) -> None:
+async def update_hotels(clb: CallbackQuery, manager: DialogManager, session_maker: async_sessionmaker) -> None:
     id_user = int(clb.from_user.id)
     hotel_name = str(manager.dialog_data["hotel_name"])
     address = str(manager.dialog_data["address"])
@@ -26,9 +26,11 @@ async def update_table(clb: CallbackQuery, manager: DialogManager, session_maker
 
     async with session_maker() as session:
         async with session.begin():
-            stmt = select(Hotel).where(and_(Hotel.id_user == id_user, Hotel.hotel_name == hotel_name))
-            result = await session.execute(stmt)
-            existing_hotel = result.scalars().first()
+            hotel_query = select(Hotel).where(
+                and_(Hotel.id_user == id_user, Hotel.hotel_name == hotel_name)
+            )
+            result_proxy = await session.execute(hotel_query)
+            existing_hotel = result_proxy.scalars().first()
             if existing_hotel is None:
                 session.add(
                     Hotel(
@@ -45,4 +47,4 @@ async def update_table(clb: CallbackQuery, manager: DialogManager, session_maker
                         latitude=latitude,
                         longitude=longitude,
                     )
-            )
+                )

@@ -38,10 +38,10 @@ class API_interface:
                     data.append((item["gaiaId"], item["regionNames"]["displayName"]))
             return data
 
-    async def get_list_hotels_id(self, regId: str, sort: str, check_in: list, check_out: list) -> list[tuple[str, str]]:
+    async def get_list_hotels_id(self, regId: str, sort: str, check_in: str, check_out: str) -> list[tuple[str, str]]:
         url = "https://hotels4.p.rapidapi.com/properties/v2/list"
-        year_in, month_in, day_in = check_in
-        year_out, month_out, day_out = check_out
+        year_in, month_in, day_in = list(map(int, check_in.split("-")))
+        year_out, month_out, day_out = list(map(int, check_out.split("-")))
 
         payload = {
             "currency": "USD",
