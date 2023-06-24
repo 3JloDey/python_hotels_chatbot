@@ -65,7 +65,7 @@
     </li>
     <li>
       <p>
-        Запустите файл <code>main.py</code>
+        Запустите файл <code>main.py</code>.
       </p>
     </li>
   </ul>
