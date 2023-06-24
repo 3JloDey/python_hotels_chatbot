@@ -31,7 +31,7 @@
   </h2>
   
   | Название       | Версия   |
-  | -------------- | -------- |
+  | :---           | ---:     |
   | aiogram        | 3.0.0b7  |
   | aiogram-dialog | 2.0.0b18 |
   | redis          | 4.5.5    |
@@ -48,24 +48,24 @@
   <ul>
     <li>
       <p>
-        <b>Склонируйте репозиторий на свой локальный компьютер.</b>
+        Склонируйте репозиторий на свой локальный компьютер.
       </p>
       <code>git clone https://github.com/3JloDey/python_hotels_chatbot.git</code>
     </li>
     <li>
       <p>
-        <b>Установите зависимости используя команду.</b>
+        Установите зависимости используя команду.
       </p>
       <code>pip install -r requirements.txt</code>
     </li>
     <li>
       <p>
-        <b>Переименуйте файл</b> <code>.env_template</code> <b>в</b> <code>.env</code> <b>и заполните его по-шаблону внутри.</b>
+        Переименуйте файл <code>.env_template</code> в <code>.env</code> и заполните его по-шаблону внутри.
       </p>
     </li>
     <li>
       <p>
-        <b>Запустите файл</b> <code>main.py</code>
+        Запустите файл <code>main.py</code>
       </p>
     </li>
   </ul>
