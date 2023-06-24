@@ -40,7 +40,6 @@
   | orjson         | 3.9.1    |
   | betterlogging  | 0.2.1    |
   | environs       | 9.5.0    |
-  | orjson         | 3.9.1    |
   | SQLAlchemy     | 2.0.16   |
   | asyncpg        | 0.27.0   |
   <h2>
