@@ -20,4 +20,6 @@ async def pagination(clb: CallbackQuery, index: int, lst: list) -> int:
         index += 1
     elif clb.data == "prev" and 0 < index <= length - 1:
         index -= 1
+    else:
+        await clb.answer()
     return index

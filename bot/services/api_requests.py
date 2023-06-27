@@ -2,6 +2,7 @@ import re
 from typing import Any
 
 import httpx
+import jmespath as jp
 import orjson
 
 
@@ -13,33 +14,15 @@ class API_interface:
             "X-RapidAPI-Host": "hotels4.p.rapidapi.com",
         }
 
-    @staticmethod
-    async def get_value(data, keys, default='No Data') -> str | Any:
-        """Get the value of a key in a nested dictionary.
-
-        Args:
-            data (dict): The dictionary to search for the key.
-            keys (list): A list of keys to traverse through the nested dictionary.
-            default (Any, optional): The default value to return if the key is not found. Defaults to 'No Data'.
-
-        Returns:
-            str | Any: The value of the specified key or the default value if the key is not found.
-        """
-        for key in keys:
-            try:
-                data = data[key]
-            except (TypeError, KeyError, AttributeError):
-                return default
-        return data or default
-
     async def get_variants_locations(self, city_from_user: str) -> list[tuple[str, str]]:
-        """Get a list of location variants for a given city.
+        """
+        Fetches a list of location IDs and names that match the given search query.
 
         Args:
-            city_from_user (str): The name of the city to search for.
+            city_from_user: string representing the user's search query
 
         Returns:
-            list[tuple[str, str]]: A list of tuples containing the location ID and display name.
+            A list of tuples containing each location's ID and name as strings.
         """
         url = "https://hotels4.p.rapidapi.com/locations/v3/search"
         querystring = {
@@ -50,23 +33,27 @@ class API_interface:
         }
         async with httpx.AsyncClient() as ahtx:
             response = await ahtx.get(url, headers=self.__headers, params=querystring)
-            data: list[tuple[str, str]] = []
-            for item in orjson.loads(response.text)["sr"]:
-                if item["type"] not in ("HOTEL", "AIRPORT"):
-                    data.append((item["gaiaId"], item["regionNames"]["displayName"]))
+            deserialized = orjson.loads(response.text)
+
+            cities = jp.search("sr[*].regionNames.displayName", deserialized)
+            cities_id = jp.search("sr[*].gaiaId", deserialized)
+            types = jp.search("sr[*].type", deserialized)
+            data = [(id, city) for id, city, type in zip(cities_id, cities, types)
+                    if type in ("CITY", "NEIGHBORHOOD")]
             return data
 
     async def get_list_hotels_id(self, regId: str, sort: str, check_in: str, check_out: str) -> list[tuple[str, str]]:
-        """Get a list of hotel IDs and prices for a given region ID and date range.
+        """
+        Fetches a list of hotel IDs and prices from RapidAPI.
 
         Args:
-            regId (str): The ID of the region to search in.
-            sort (str): The sorting method to use.
-            check_in (str): The check-in date in YYYY-MM-DD format.
-            check_out (str): The check-out date in YYYY-MM-DD format.
+            regId: string representing the ID of the region
+            sort: string representing how to sort the hotels, e.g. "PRICE_LOW_TO_HIGH"
+            check_in: string representing the check-in date in YYYY-MM-DD format
+            check_out: string representing the check-out date in YYYY-MM-DD format
 
         Returns:
-            list[tuple[str, str]]: A list of tuples containing the hotel ID and price.
+            A list of tuples containing each hotel's ID and price as strings.
         """
         url = "https://hotels4.p.rapidapi.com/properties/v2/list"
         year_in, month_in, day_in = list(map(int, check_in.split("-")))
@@ -89,24 +76,31 @@ class API_interface:
 
         async with httpx.AsyncClient(timeout=httpx.Timeout(12.0)) as ahtx:
             response = await ahtx.post(url, json=payload, headers=self.__headers)
-            data: list[tuple[str, str]] = []
-            for info in orjson.loads(response.text)["data"]["propertySearch"]["properties"]:
-                try:
-                    hotel_id = info["id"]
-                    price = info["price"]["displayMessages"][1]["lineItems"][0].get("value", 'No Data')
-                    data.append((hotel_id, price))
-                except (TypeError, KeyError):
-                    continue
-            return data
+            deserialized = orjson.loads(response.text)
+            ids = jp.search('data.propertySearch.properties[*].id', deserialized)
+            price = jp.search('data.propertySearch.properties[*].price.displayMessages[1].lineItems[0].value', deserialized)
+            return list(zip(ids, price))
 
     async def get_detail_information(self, hotel) -> dict[str, Any]:
-        """Get detailed information about a hotel.
+        """
+        Fetches detailed information about a hotel from the RapidAPI and returns a dictionary of relevant data.
 
         Args:
-            hotel (tuple[str, str]): A tuple containing the hotel ID and price.
+            hotel: a tuple containing the hotel ID and its price
 
         Returns:
-            dict[str, Any]: A dictionary containing detailed information about the hotel.
+            A dictionary containing the following keys:
+
+            - "hotel_name": string representing the name of the hotel
+            - "address": string representing the address of the hotel
+            - "rating": string representing the rating of the hotel
+            - "price": float representing the price of the hotel
+            - "around": string representing things around the hotel
+            - "users_rating": string representing the user rating of the hotel
+            - "about": string representing information about the hotel
+            - "photos": list of tuples, each containing a string URL of a photo and a string description.
+            - "latitude": float representing the latitude of the hotel's location
+            - "longitude": float representing the longitude of the hotel's location
         """
         url = "https://hotels4.p.rapidapi.com/properties/v2/detail"
         id, price = hotel
@@ -118,36 +112,39 @@ class API_interface:
             "propertyId": f"{id}",
         }
 
-        async with httpx.AsyncClient(timeout=httpx.Timeout(15.0)) as ahtx:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(12.0)) as ahtx:
             response = await ahtx.post(url, json=payload, headers=self.__headers)
-            data = orjson.loads(response.text)
-            photos: list[tuple[str, str]] = []
+            deserialized = orjson.loads(response.text)
 
-            for image in data["data"]["propertyInfo"]["propertyGallery"]["images"]:
-                image_url = re.sub(r'\?.*$', '', image["image"]["url"])
-                image_description = image["image"]["description"] or 'No description'
-                photos.append((image_url, image_description))
+            lctn = "data.propertyInfo.summary.location"
+            prprt = "data.propertyInfo"
+            smmr = "data.propertyInfo.summary"
+            glr = "data.propertyInfo.propertyGallery.images[*].image"
 
-            stars = await self.get_value(data, ["data", "propertyInfo", "summary", "overview", "propertyRating", "rating"], 'No Stars')
+            hotel_name = jp.search(f"{smmr}.name", deserialized)
+            address = jp.search(f"{lctn}.address.addressLine", deserialized)
+            rating = jp.search(f"{smmr}.overview.propertyRating.rating", deserialized) or 'No stars'
+            user_rating = jp.search(f"{prprt}.reviewInfo.summary.overallScoreWithDescriptionA11y.value", deserialized) or 'No user rating'
+            about = jp.search(f"{prprt}.propertyContentSectionGroups.aboutThisProperty.sections[0].bodySubSections[0].elements[0].items[0].content.text", deserialized) or "No Data"
+            around = jp.search(f"{lctn}.whatsAround.editorial.content[0]", deserialized) or 'No Data'
+            longitude = jp.search(f"{lctn}.coordinates.longitude", deserialized)
+            latitude = jp.search(f"{lctn}.coordinates.latitude", deserialized)
 
-            user_rating = await self.get_value(data, ["data", "propertyInfo", "reviewInfo", "summary",
-                                                        "overallScoreWithDescriptionA11y", "value"], 'No User Rating')
+            dirty_urls = jp.search(f"{glr}.url", deserialized)
+            clean_urls = [re.sub(r'\?.*$', '', url) for url in dirty_urls]
+            image_description = jp.search(f"{glr}.description", deserialized)
 
-            around = await self.get_value(data, ["data", "propertyInfo", "summary", "location", "whatsAround",
-                                                   "editorial", "content", 0])
+            photos = list(zip(clean_urls, image_description))
 
-            about = await self.get_value(data, ["data", "propertyInfo", "propertyContentSectionGroups",
-                                                  "aboutThisProperty", "sections", 0, "bodySubSections",
-                                                  0, "elements", 0, "items", 0, "content", "text"])
             return {
-                "hotel_name": data["data"]["propertyInfo"]["summary"]["name"],
-                "address": data["data"]["propertyInfo"]["summary"]["location"]["address"]["addressLine"],
-                "rating": stars,
+                "hotel_name": hotel_name,
+                "address": address,
+                "rating": rating,
                 "price": price,
                 "around": around,
                 "users_rating": user_rating,
                 "about": about,
                 "photos": photos,
-                "latitude": data["data"]["propertyInfo"]["summary"]["location"]["coordinates"].get("latitude"),
-                "longitude": data["data"]["propertyInfo"]["summary"]["location"]["coordinates"].get("longitude"),
+                "latitude": latitude,
+                "longitude": longitude,
             }
