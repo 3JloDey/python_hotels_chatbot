@@ -42,6 +42,7 @@
   | environs       | 9.5.0    |
   | SQLAlchemy     | 2.0.16   |
   | asyncpg        | 0.27.0   |
+  | jmespath       | 1.0.1    |
   <h2>
     <b>Установка</b>
   </h2>
